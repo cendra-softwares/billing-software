@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:seo_biling/core/widgets/cendra_alert_service.dart';
 import 'package:seo_biling/features/auth/presentation/providers/auth_providers.dart';
 
 class HomePage extends ConsumerWidget {
