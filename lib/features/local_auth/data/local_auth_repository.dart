@@ -77,9 +77,9 @@ class LocalAuthRepository {
       ..createdAt = DateTime.now().toUtc();
 
     final newConfig = RestaurantConfig()
-      ..primaryColor = primaryColor
-      ..secondaryColor = secondaryColor
-      ..accentColor = accentColor
+      ..primaryColor = primaryColor ?? RestaurantConfig().primaryColor
+      ..secondaryColor = secondaryColor ?? RestaurantConfig().secondaryColor
+      ..accentColor = accentColor ?? RestaurantConfig().accentColor
       ..logoUrl = logoUrl
       ..createdAt = DateTime.now().toUtc();
 
@@ -102,15 +102,26 @@ class LocalAuthRepository {
   }
 
   Future<Restaurant?> getRestaurantForUser(Profile profile) async {
-    final isar = await _isarService.db;
     await profile.restaurant.load(); // Ensure the link is loaded
     return profile.restaurant.value;
   }
 
   Future<RestaurantConfig?> getRestaurantConfig(Restaurant restaurant) async {
-    final isar = await _isarService.db;
     await restaurant.restaurantConfigs.load(); // Ensure the link is loaded
     final config = restaurant.restaurantConfigs.firstOrNull;
     return config;
+  }
+
+  Future<void> updateRestaurantConfig(RestaurantConfig config) async {
+    final isar = await _isarService.db;
+    try {
+      await isar.writeTxn(() async {
+        await isar.restaurantConfigs.put(config);
+        await config.restaurant.save(); // Save the link if it's updated
+      });
+    } catch (e) {
+      print('Error updating restaurant config: $e');
+      rethrow; // Re-throw to be caught by controller
+    }
   }
 }

@@ -53,9 +53,9 @@ class Restaurant {
 @collection
 class RestaurantConfig {
   Id id = Isar.autoIncrement;
-  String? primaryColor;
-  String? secondaryColor;
-  String? accentColor;
+  String primaryColor = '#607D8B'; // Default to Blue Grey
+  String secondaryColor = '#455A64'; // Default to a darker shade
+  String accentColor = '#FFC107'; // Default to Amber
   String? logoUrl;
   DateTime? createdAt;
 

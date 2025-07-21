@@ -140,4 +140,17 @@ class LocalAuthController extends StateNotifier<LocalAuthState> {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
+
+  Future<void> updateRestaurantConfig(RestaurantConfig config) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _localAuthRepository.updateRestaurantConfig(config);
+      // After updating, reload restaurant data to ensure state is consistent
+      if (state.currentUser != null) {
+        await _loadRestaurantData(state.currentUser!);
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
 }

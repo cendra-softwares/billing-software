@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
-import 'package:seo_biling/isar/models/local_schema_model.dart' as local_schema_model; // Alias for clarity
+import 'package:seo_biling/isar/models/local_schema_model.dart'
+    as local_schema_model; // Alias for clarity
 import 'package:seo_biling/isar/services/isar_service.dart';
 
 class IsarDataManagementPage extends StatefulWidget {
@@ -28,9 +29,7 @@ class _IsarDataManagementPageState extends State<IsarDataManagementPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Isar Data Management'),
-      ),
+      appBar: AppBar(title: const Text('Isar Data Management')),
       body: ListView.builder(
         itemCount: tableNames.length,
         itemBuilder: (context, index) {
@@ -59,9 +58,7 @@ class _IsarDataManagementPageState extends State<IsarDataManagementPage> {
         return AlertDialog(
           title: Text('Add New $tableName'),
           content: SingleChildScrollView(
-            child: Column(
-              children: _buildFormFields(tableName),
-            ),
+            child: Column(children: _buildFormFields(tableName)),
           ),
           actions: [
             TextButton(
@@ -156,7 +153,9 @@ class _IsarDataManagementPageState extends State<IsarDataManagementPage> {
           inputWidget = ListTile(
             title: Text(property.name),
             subtitle: Text(
-              (_tempData[tableName]![property.name] as DateTime?)?.toIso8601String() ?? 'Not set',
+              (_tempData[tableName]![property.name] as DateTime?)
+                      ?.toIso8601String() ??
+                  'Not set',
             ),
             trailing: IconButton(
               icon: const Icon(Icons.calendar_today),
@@ -199,7 +198,9 @@ class _IsarDataManagementPageState extends State<IsarDataManagementPage> {
         case IsarType.object:
         case IsarType.objectList:
           // Handle other types or display a message for unsupported types
-          inputWidget = Text('${property.name}: Unsupported type ${property.type}');
+          inputWidget = Text(
+            '${property.name}: Unsupported type ${property.type}',
+          );
           break;
         case IsarType.string: // This covers string enums as well
           inputWidget = TextField(
@@ -219,13 +220,17 @@ class _IsarDataManagementPageState extends State<IsarDataManagementPage> {
           );
           break;
         default: // Default case to ensure inputWidget is always initialized
-          inputWidget = Text('${property.name}: Unsupported type ${property.type}');
+          inputWidget = Text(
+            '${property.name}: Unsupported type ${property.type}',
+          );
           break;
       }
-      fields.add(Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: inputWidget,
-      ));
+      fields.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: inputWidget,
+        ),
+      );
     }
     return fields;
   }
@@ -310,7 +315,9 @@ class _IsarDataManagementPageState extends State<IsarDataManagementPage> {
         break;
       case 'Order':
         newObject = local_schema_model.Order()
-          ..status = local_schema_model.OrderStatus.values.byName(data['status'] ?? 'pending')
+          ..status = local_schema_model.OrderStatus.values.byName(
+            data['status'] ?? 'pending',
+          )
           ..total = data['total']
           ..placedAt = data['placedAt'] ?? DateTime.now();
         await isar.writeTxn(() async {
@@ -331,7 +338,9 @@ class _IsarDataManagementPageState extends State<IsarDataManagementPage> {
           ..tax = data['tax'] ?? 0.0
           ..discount = data['discount'] ?? 0.0
           ..total = data['total']
-          ..paymentMethod = local_schema_model.PaymentMethod.values.byName(data['paymentMethod'] ?? 'cash')
+          ..paymentMethod = local_schema_model.PaymentMethod.values.byName(
+            data['paymentMethod'] ?? 'cash',
+          )
           ..paidAt = data['paidAt'];
         await isar.writeTxn(() async {
           await isar.bills.put(newObject);
@@ -362,7 +371,9 @@ class _IsarDataManagementPageState extends State<IsarDataManagementPage> {
           ..fullName = data['fullName']
           ..email = data['email']
           ..phoneNumber = data['phoneNumber']
-          ..role = local_schema_model.UserRole.values.byName(data['role'] ?? 'waiter')
+          ..role = local_schema_model.UserRole.values.byName(
+            data['role'] ?? 'waiter',
+          )
           ..isActive = data['isActive'] ?? true
           ..isDeleted = data['isDeleted'] ?? false
           ..createdAt = data['createdAt'] ?? DateTime.now();

@@ -1912,30 +1912,15 @@ int _restaurantConfigEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.accentColor;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.accentColor.length * 3;
   {
     final value = object.logoUrl;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
   }
-  {
-    final value = object.primaryColor;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
-    final value = object.secondaryColor;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.primaryColor.length * 3;
+  bytesCount += 3 + object.secondaryColor.length * 3;
   return bytesCount;
 }
 
@@ -1959,12 +1944,12 @@ RestaurantConfig _restaurantConfigDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = RestaurantConfig();
-  object.accentColor = reader.readStringOrNull(offsets[0]);
+  object.accentColor = reader.readString(offsets[0]);
   object.createdAt = reader.readDateTimeOrNull(offsets[1]);
   object.id = id;
   object.logoUrl = reader.readStringOrNull(offsets[2]);
-  object.primaryColor = reader.readStringOrNull(offsets[3]);
-  object.secondaryColor = reader.readStringOrNull(offsets[4]);
+  object.primaryColor = reader.readString(offsets[3]);
+  object.secondaryColor = reader.readString(offsets[4]);
   return object;
 }
 
@@ -1976,15 +1961,15 @@ P _restaurantConfigDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 4:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -2087,26 +2072,8 @@ extension RestaurantConfigQueryWhere
 extension RestaurantConfigQueryFilter
     on QueryBuilder<RestaurantConfig, RestaurantConfig, QFilterCondition> {
   QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
-      accentColorIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'accentColor',
-      ));
-    });
-  }
-
-  QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
-      accentColorIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'accentColor',
-      ));
-    });
-  }
-
-  QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
       accentColorEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -2120,7 +2087,7 @@ extension RestaurantConfigQueryFilter
 
   QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
       accentColorGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -2136,7 +2103,7 @@ extension RestaurantConfigQueryFilter
 
   QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
       accentColorLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -2152,8 +2119,8 @@ extension RestaurantConfigQueryFilter
 
   QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
       accentColorBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -2525,26 +2492,8 @@ extension RestaurantConfigQueryFilter
   }
 
   QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
-      primaryColorIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'primaryColor',
-      ));
-    });
-  }
-
-  QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
-      primaryColorIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'primaryColor',
-      ));
-    });
-  }
-
-  QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
       primaryColorEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -2558,7 +2507,7 @@ extension RestaurantConfigQueryFilter
 
   QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
       primaryColorGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -2574,7 +2523,7 @@ extension RestaurantConfigQueryFilter
 
   QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
       primaryColorLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -2590,8 +2539,8 @@ extension RestaurantConfigQueryFilter
 
   QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
       primaryColorBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -2679,26 +2628,8 @@ extension RestaurantConfigQueryFilter
   }
 
   QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
-      secondaryColorIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'secondaryColor',
-      ));
-    });
-  }
-
-  QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
-      secondaryColorIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'secondaryColor',
-      ));
-    });
-  }
-
-  QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
       secondaryColorEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -2712,7 +2643,7 @@ extension RestaurantConfigQueryFilter
 
   QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
       secondaryColorGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -2728,7 +2659,7 @@ extension RestaurantConfigQueryFilter
 
   QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
       secondaryColorLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -2744,8 +2675,8 @@ extension RestaurantConfigQueryFilter
 
   QueryBuilder<RestaurantConfig, RestaurantConfig, QAfterFilterCondition>
       secondaryColorBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -3059,7 +2990,7 @@ extension RestaurantConfigQueryProperty
     });
   }
 
-  QueryBuilder<RestaurantConfig, String?, QQueryOperations>
+  QueryBuilder<RestaurantConfig, String, QQueryOperations>
       accentColorProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'accentColor');
@@ -3079,14 +3010,14 @@ extension RestaurantConfigQueryProperty
     });
   }
 
-  QueryBuilder<RestaurantConfig, String?, QQueryOperations>
+  QueryBuilder<RestaurantConfig, String, QQueryOperations>
       primaryColorProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'primaryColor');
     });
   }
 
-  QueryBuilder<RestaurantConfig, String?, QQueryOperations>
+  QueryBuilder<RestaurantConfig, String, QQueryOperations>
       secondaryColorProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'secondaryColor');

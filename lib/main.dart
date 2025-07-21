@@ -5,7 +5,7 @@ import 'package:seo_biling/features/local_auth/presentation/pages/local_signup_p
 import 'package:seo_biling/features/local_auth/presentation/pages/restaurant_creation_page.dart';
 import 'package:seo_biling/features/local_auth/presentation/pages/user_dashboard_page.dart';
 import 'package:seo_biling/features/local_auth/presentation/providers/local_auth_providers.dart';
-import 'package:seo_biling/features/local_auth/presentation/providers/local_auth_controller.dart';
+import 'package:seo_biling/isar/models/local_schema_model.dart'; // Import the model
 
 // Create a global provider for the IsarService
 final isarServiceProvider = Provider<IsarService>((ref) {
@@ -30,15 +30,96 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
+  // Helper function to parse hex color string to Color object
+  Color _parseHexColor(String? hexColor) {
+    if (hexColor == null || hexColor.isEmpty) {
+      return Colors.blueGrey; // Default color if not provided
+    }
+    String formattedHex = hexColor.replaceAll('#', '');
+    if (formattedHex.length == 6) {
+      formattedHex = 'FF$formattedHex'; // Add FF for opacity if not present
+    }
+    return Color(int.parse(formattedHex, radix: 16));
+  }
+
+  // Helper to determine foreground color based on background brightness
+  Color _getForegroundColor(Color backgroundColor) {
+    return ThemeData.estimateBrightnessForColor(backgroundColor) ==
+            Brightness.dark
+        ? Colors.white
+        : Colors.black;
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(localAuthControllerProvider);
+    final restaurantConfig = authState.currentRestaurantConfig;
+
+    // Get colors from config or use defaults from the model instance
+    final config = restaurantConfig ?? RestaurantConfig();
+    final primaryColor = _parseHexColor(config.primaryColor);
+    final secondaryColor = _parseHexColor(config.secondaryColor);
+    final accentColor = _parseHexColor(config.accentColor);
+
+    // Create a dynamic color scheme
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: primaryColor,
+      primary: primaryColor,
+      onPrimary: _getForegroundColor(primaryColor),
+      secondary: secondaryColor,
+      onSecondary: _getForegroundColor(secondaryColor),
+      tertiary: accentColor,
+      onTertiary: _getForegroundColor(accentColor),
+      brightness: Brightness.light,
+    );
+
     return MaterialApp(
       title: 'Cendra Billing (Local)',
       theme: ThemeData(
-        primarySwatch: Colors.blueGrey, // Changed theme for local version
+        useMaterial3: true,
+        colorScheme: colorScheme,
+        appBarTheme: AppBarTheme(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          elevation: 4,
+          shadowColor: Colors.black.withOpacity(0.2),
+          iconTheme: IconThemeData(color: colorScheme.onPrimary),
+          actionsIconTheme: IconThemeData(color: colorScheme.onPrimary),
+          titleTextStyle: TextStyle(
+            color: colorScheme.onPrimary,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        iconTheme: IconThemeData(color: colorScheme.secondary),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(foregroundColor: colorScheme.primary),
+        ),
+        iconButtonTheme: IconButtonThemeData(
+          style: IconButton.styleFrom(foregroundColor: colorScheme.primary),
+        ),
+        cardTheme: CardThemeData(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        textTheme: Theme.of(context).textTheme.apply(
+          bodyColor: colorScheme.onSurface,
+          displayColor: colorScheme.onSurface,
+        ),
       ),
       home: const LocalAuthGate(), // Use our new local auth gate
     );
@@ -67,11 +148,7 @@ class _LocalAuthGateState extends ConsumerState<LocalAuthGate> {
     final authState = ref.watch(localAuthControllerProvider);
 
     if (authState.isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     } else if (authState.currentUser == null) {
       return const LocalSignupPage();
     } else if (authState.currentRestaurant == null) {

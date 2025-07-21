@@ -158,3 +158,15 @@ Log and monitor all performance issues, including dropped frames, actions delaye
 Strictly adhere to an offline-first development approach.
 
 By integrating these philosophical, anatomical, and technical principles, this guide provides a blueprint for creating a restaurant billing UI that is not only user-friendly but a powerful tool for enhancing operational efficiency and driving business success.
+
+Part 6: Dynamic Theming and Color System
+To provide a customizable and brand-aligned experience, the application implements a dynamic theming system controlled by the restaurant's configuration.
+
+Dynamic Color Palette:
+The UI's color scheme is not static. It is dynamically generated based on three key colors defined in the `RestaurantConfig`:
+- `primaryColor`: Used for main UI elements like app bars and primary buttons.
+- `secondaryColor`: Used for secondary UI elements and accents.
+- `accentColor` (Tertiary): Used for floating action buttons, highlights, and other accent elements.
+
+Adaptive Text and Icon Color:
+To ensure readability and accessibility, the color of text and icons on colored backgrounds is not fixed. The system automatically determines the brightness of the background color and selects either black or white for the foreground element to provide optimal contrast. This ensures that text is always legible, regardless of the chosen brand colors.

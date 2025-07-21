@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/isar/models/local_schema_model.dart'; // Import Isar models
 import 'package:seo_biling/features/local_auth/presentation/providers/local_auth_providers.dart'; // Import local auth providers
+import 'package:seo_biling/features/local_auth/presentation/pages/restaurant_config_editor_page.dart'; // Import config editor page
+import 'package:seo_biling/features/local_auth/presentation/pages/restaurant_creation_page.dart'; // Import restaurant creation page
 
 class UserDashboardPage extends ConsumerWidget {
   final Profile userProfile;
@@ -20,17 +22,15 @@ class UserDashboardPage extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // Logging to check the received config
+    print("Dashboard received config: ${restaurantConfig?.accentColor}");
+
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Welcome, ${userProfile.fullName ?? userProfile.email ?? 'User'}!',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            color: colorScheme.onSurface,
-            fontWeight: FontWeight.bold,
-          ),
         ),
-        backgroundColor: colorScheme.surface,
         elevation: 0,
         actions: [
           IconButton(
@@ -92,12 +92,29 @@ class UserDashboardPage extends ConsumerWidget {
               const SizedBox(height: 32),
             ],
             if (restaurantConfig != null) ...[
-              Text(
-                'Restaurant Configuration',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Restaurant Configuration',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => RestaurantConfigEditorPage(
+                            initialConfig: restaurantConfig,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               Container(
@@ -128,11 +145,28 @@ class UserDashboardPage extends ConsumerWidget {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  // TODO: Navigate to restaurant creation page
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const RestaurantCreationPage(),
+                    ),
+                  );
                 },
                 child: const Text('Create Restaurant'),
               ),
             ],
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => RestaurantConfigEditorPage(
+                      initialConfig: restaurantConfig,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Edit Restaurant Configuration'),
+            ),
           ],
         ),
       ),
@@ -172,9 +206,9 @@ class UserDashboardPage extends ConsumerWidget {
     // Simple JSON-like string representation for display
     return '''
 {
-  "primaryColor": "${config.primaryColor ?? 'N/A'}",
-  "secondaryColor": "${config.secondaryColor ?? 'N/A'}",
-  "accentColor": "${config.accentColor ?? 'N/A'}",
+  "primaryColor": "${config.primaryColor}",
+  "secondaryColor": "${config.secondaryColor}",
+  "accentColor": "${config.accentColor}",
   "logoUrl": "${config.logoUrl ?? 'N/A'}",
   "createdAt": "${config.createdAt?.toIso8601String() ?? 'N/A'}"
 }
