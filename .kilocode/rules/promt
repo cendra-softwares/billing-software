@@ -1,3 +1,35 @@
 Leveraging the guidelines in `@/.kilocode/rules/flutter-rules.md`, `@/.kilocode/rules/project-overview.md`, and `@/.kilocode/rules/UI-UX.md`, develop the foundational Flutter UI for a billing interface, ensuring the design is fully informed by and compatible with the database schema. Check the Database !!, Firstly our priority is to make a fully offline storage /  optimised app for full offline supoort thats why we are using isar, so build the 
 
 <!-- D:\Dev\Flutter\Project\billing\.kilocode\rules create a .md file to explain how to use the snack bar isnide the @d:\Dev\Flutter\Project\billing/.kilocode\rules/  -->
+
+first of all lets create the billing interface @/.kilocode/rules/UI-UX.md , @/.kilocode/rules/project-overview.md@/.kilocode/rules/flutter-rules.md@/.kilocode/rules/isar-db-setup-guide.md 
+
+our first propity is to make a fully offline support for our app, so first this is to change the dependancy from isar to 
+
+@https://github.com/isar-community/isar 
+
+example of pubspec.yaml 
+
+"isar_version: &isar_version 3.1.8 # define the version to be used
+
+dependencies:
+  isar: 
+    version: *isar_version
+    hosted: https://pub.isar-community.dev/
+  isar_flutter_libs: # contains Isar Core
+    version: *isar_version
+    hosted: https://pub.isar-community.dev/
+
+dev_dependencies:
+  isar_generator: 
+    version: *isar_version
+    hosted: https://pub.isar-community.dev/
+  build_runner: any
+"
+
+and please refer context 7 for latests docs
+
+then Check our current supabase DB using mcp , then check its schema and al the tables and thier relations, copy the table and recreate the necceasry table to recreate in isar refer @/.kilocode/rules/isar-db-setup-guide.md 
+
+
+the only approach one at a time and implement the basic biliing UI
