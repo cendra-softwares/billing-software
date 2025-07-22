@@ -22,11 +22,11 @@ class BillingScreen extends StatelessWidget {
             child: Row(
               children: [
                 const Expanded(
-                  flex: 6, // 60% of the screen
+                  flex: 7, // 70% of the screen
                   child: ActionZone(),
                 ),
                 const Expanded(
-                  flex: 4, // 40% of the screen
+                  flex: 3, // 30% of the screen
                   child: ContextZone(),
                 ),
               ],

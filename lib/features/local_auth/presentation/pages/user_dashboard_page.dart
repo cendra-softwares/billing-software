@@ -5,6 +5,7 @@ import 'package:seo_biling/features/local_auth/presentation/providers/local_auth
 import 'package:seo_biling/features/local_auth/presentation/pages/restaurant_config_editor_page.dart'; // Import config editor page
 import 'package:seo_biling/features/billing/presentation/pages/billing_screen.dart';
 import 'package:seo_biling/features/local_auth/presentation/pages/restaurant_creation_page.dart'; // Import restaurant creation page
+import 'package:seo_biling/features/table_view/presentation/pages/table_view_page.dart';
 
 class UserDashboardPage extends ConsumerWidget {
   final Profile userProfile;
@@ -178,6 +179,17 @@ class UserDashboardPage extends ConsumerWidget {
                 );
               },
               child: const Text('Go to Billing'),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const TableViewPage(),
+                  ),
+                );
+              },
+              child: const Text('Go to Table View'),
             ),
           ],
         ),

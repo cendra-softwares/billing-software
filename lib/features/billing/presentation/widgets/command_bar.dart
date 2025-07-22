@@ -34,13 +34,6 @@ class CommandBar extends StatelessWidget {
             color: Colors.blue,
             shortcut: 'F7',
           ),
-          _buildActionButton(
-            context,
-            label: 'Split Bill',
-            icon: Icons.call_split,
-            color: Colors.purple,
-            shortcut: 'F8',
-          ),
           const SizedBox(width: 20),
           ElevatedButton.icon(
             onPressed: () {},
