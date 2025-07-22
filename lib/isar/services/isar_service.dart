@@ -31,4 +31,14 @@ class IsarService {
     }
     return Future.value(Isar.getInstance());
   }
+
+  Future<Restaurant?> getRestaurantByConfig(RestaurantConfig config) async {
+    final isar = await db;
+    // Assuming the config is already saved and has a backlink to the restaurant
+    final restaurant = await isar.restaurants
+        .filter()
+        .restaurantConfigs((q) => q.idEqualTo(config.id))
+        .findFirst();
+    return restaurant;
+  }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:seo_biling/isar/services/isar_service.dart';
 import 'package:seo_biling/features/local_auth/presentation/pages/local_signup_page.dart';
 import 'package:seo_biling/features/local_auth/presentation/pages/restaurant_creation_page.dart';
@@ -15,6 +17,23 @@ final isarServiceProvider = Provider<IsarService>((ref) {
 void main() async {
   // Ensure that Flutter bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+
+  // Initialize Supabase
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+  );
+
+  // Debug log to check the current user's role
+  final currentUser = Supabase.instance.client.auth.currentUser;
+  if (currentUser != null) {
+    print('Supabase user found: ${currentUser.id}, Role: ${currentUser.role}');
+  } else {
+    print('Supabase user not found, operating as anonymous.');
+  }
 
   // Initialize the IsarService
   final isarService = IsarService();

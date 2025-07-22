@@ -4,6 +4,7 @@ import 'package:seo_biling/core/widgets/loading_overlay.dart';
 import 'package:seo_biling/core/widgets/cendra_alert_service.dart';
 import 'package:seo_biling/isar/models/local_schema_model.dart';
 import 'package:seo_biling/features/local_auth/presentation/providers/local_auth_providers.dart';
+import 'package:seo_biling/features/sync/data/config_sync_repository.dart';
 
 class RestaurantConfigEditorPage extends ConsumerStatefulWidget {
   final RestaurantConfig? initialConfig;
@@ -88,12 +89,23 @@ class _RestaurantConfigEditorPageState
 
       if (!mounted) return;
       if (controller.debugState.error == null) {
-        // Check if the update was successful
-        CendraAlertService.showSuccess(
-          context,
-          'Success',
-          description: 'Restaurant configuration saved successfully!',
-        );
+        final syncRepo = ref.read(configSyncRepositoryProvider);
+        try {
+          await syncRepo.syncConfigToSupabase(updatedConfig);
+          if (!mounted) return;
+          CendraAlertService.showSuccess(
+            context,
+            'Success',
+            description: 'Restaurant configuration saved and synced successfully!',
+          );
+        } catch (e) {
+          if (!mounted) return;
+          CendraAlertService.showError(
+            context,
+            'Sync Error',
+            description: 'Failed to sync configuration with Supabase.',
+          );
+        }
         Navigator.of(context).pop(); // Go back to dashboard
       }
     }

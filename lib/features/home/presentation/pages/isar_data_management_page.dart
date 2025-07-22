@@ -80,7 +80,7 @@ class _IsarDataManagementPageState extends State<IsarDataManagementPage> {
     );
   }
 
-  Map<String, Map<String, dynamic>> _tempData = {};
+  final Map<String, Map<String, dynamic>> _tempData = {};
 
   @override
   void initState() {
