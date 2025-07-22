@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/features/auth/presentation/providers/auth_providers.dart';
 import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
 import 'package:seo_biling/features/auth/presentation/pages/menu_management_page.dart';
+import 'package:seo_biling/features/auth/presentation/pages/login_page.dart'; // Import LoginPage
+import 'package:seo_biling/features/auth/data/auth_repository.dart'; // Import AuthRepository
 import 'package:seo_biling/features/auth/presentation/providers/theme_provider.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/category_maker_dialog.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/edit_config_dialog.dart';
@@ -56,47 +58,71 @@ class OwnerDashboardPage extends ConsumerWidget {
         ),
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
           children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(color: Theme.of(context).primaryColor),
-              child: const Text(
-                'Dashboard Menu',
-                style: TextStyle(color: Colors.white, fontSize: 24),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: <Widget>[
+                  DrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    child: const Text(
+                      'Dashboard Menu',
+                      style: TextStyle(color: Colors.white, fontSize: 24),
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.edit),
+                    title: const Text('Edit Config'),
+                    onTap: () {
+                      Navigator.pop(context); // Close the drawer
+                      showDialog(
+                        context: context,
+                        builder: (context) => const EditConfigDialog(),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.category),
+                    title: const Text('Manage Categories'),
+                    onTap: () {
+                      Navigator.pop(context); // Close the drawer
+                      showDialog(
+                        context: context,
+                        builder: (context) => const CategoryMakerDialog(),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.restaurant_menu),
+                    title: const Text('Menu Management'),
+                    onTap: () {
+                      Navigator.pop(context); // Close the drawer
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MenuManagementPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Edit Config'),
-              onTap: () {
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
+              onTap: () async {
                 Navigator.pop(context); // Close the drawer
-                showDialog(
-                  context: context,
-                  builder: (context) => const EditConfigDialog(),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.category),
-              title: const Text('Manage Categories'),
-              onTap: () {
-                Navigator.pop(context); // Close the drawer
-                showDialog(
-                  context: context,
-                  builder: (context) => const CategoryMakerDialog(),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.restaurant_menu),
-              title: const Text('Menu Management'),
-              onTap: () {
-                Navigator.pop(context); // Close the drawer
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MenuManagementPage()),
-                );
+                await ref.read(authRepositoryProvider).signOut();
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                    (Route<dynamic> route) => false,
+                  );
+                }
               },
             ),
           ],

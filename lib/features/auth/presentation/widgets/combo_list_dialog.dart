@@ -21,7 +21,7 @@ class ComboListDialog extends ConsumerWidget {
             }
             return GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 6   ,
+                crossAxisCount: 6,
                 childAspectRatio: 0.9,
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
