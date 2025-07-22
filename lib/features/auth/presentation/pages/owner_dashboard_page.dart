@@ -114,15 +114,9 @@ class OwnerDashboardPage extends ConsumerWidget {
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
-              onTap: () async {
+              onTap: () {
                 Navigator.pop(context); // Close the drawer
-                await ref.read(authRepositoryProvider).signOut();
-                if (context.mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                    (Route<dynamic> route) => false,
-                  );
-                }
+                ref.read(authRepositoryProvider).signOut();
               },
             ),
           ],

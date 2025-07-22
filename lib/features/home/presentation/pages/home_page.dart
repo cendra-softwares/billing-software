@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/features/auth/presentation/providers/auth_providers.dart';
+import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -18,6 +19,9 @@ class HomePage extends ConsumerWidget {
                   'You have been successfully logged out from Cendra.';
               // Perform the logout
               await ref.read(authRepositoryProvider).signOut();
+              ref.invalidate(restaurantProvider);
+              ref.invalidate(restaurantConfigProvider);
+              ref.invalidate(isRestaurantOwnerProvider);
             },
             icon: const Icon(Icons.logout),
           ),
