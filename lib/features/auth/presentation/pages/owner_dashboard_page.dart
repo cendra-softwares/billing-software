@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/features/auth/presentation/providers/auth_providers.dart';
 import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
+import 'package:seo_biling/features/auth/presentation/pages/menu_management_page.dart';
 import 'package:seo_biling/features/auth/presentation/providers/theme_provider.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/category_maker_dialog.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/edit_config_dialog.dart';
@@ -84,6 +85,17 @@ class OwnerDashboardPage extends ConsumerWidget {
                 showDialog(
                   context: context,
                   builder: (context) => const CategoryMakerDialog(),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.restaurant_menu),
+              title: const Text('Menu Management'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MenuManagementPage()),
                 );
               },
             ),

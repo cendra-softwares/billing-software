@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/features/auth/presentation/providers/auth_providers.dart';
 import 'package:seo_biling/features/auth/presentation/providers/category_providers.dart';
 import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class CategoryMakerDialog extends ConsumerStatefulWidget {
-  const CategoryMakerDialog({super.key});
+  final Map<String, dynamic>? category;
+
+  const CategoryMakerDialog({super.key, this.category});
 
   @override
   ConsumerState<CategoryMakerDialog> createState() =>
@@ -14,23 +17,79 @@ class CategoryMakerDialog extends ConsumerStatefulWidget {
 
 class _CategoryMakerDialogState extends ConsumerState<CategoryMakerDialog> {
   final _formKey = GlobalKey<FormState>();
-  String _categoryName = '';
-  String _categoryDescription = '';
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
+  late Color _pickerColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.category?['name'] ?? '');
+    _descriptionController =
+        TextEditingController(text: widget.category?['description'] ?? '');
+    _pickerColor = widget.category?['color'] != null
+        ? Color(int.parse(widget.category!['color'].replaceFirst('#', '0xff')))
+        : Colors.blue; // Default color
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
       final restaurant = ref.read(restaurantProvider).value;
-      ref
-          .read(addCategoryControllerProvider.notifier)
-          .addCategory(
-            name: _categoryName,
-            description: _categoryDescription,
-            isDefault: false,
-            restaurantId: restaurant?['id'],
-          );
+      final colorHex = '#${_pickerColor.value.toRadixString(16).substring(2)}';
+
+      if (widget.category == null) {
+        ref.read(addCategoryControllerProvider.notifier).addCategory(
+              name: _nameController.text,
+              description: _descriptionController.text,
+              isDefault: false,
+              restaurantId: restaurant?['id'],
+              color: colorHex,
+            );
+      } else {
+        ref.read(updateCategoryControllerProvider.notifier).updateCategory(
+              categoryId: widget.category!['id'],
+              name: _nameController.text,
+              description: _descriptionController.text,
+              color: colorHex,
+            );
+      }
       Navigator.of(context).pop();
     }
+  }
+
+  void _showColorPicker() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Pick a color!'),
+        content: SingleChildScrollView(
+          child: ColorPicker(
+            pickerColor: _pickerColor,
+            onColorChanged: (color) {
+              setState(() {
+                _pickerColor = color;
+              });
+            },
+            pickerAreaHeightPercent: 0.8,
+          ),
+        ),
+        actions: <Widget>[
+          ElevatedButton(
+            child: const Text('Got it'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -38,7 +97,7 @@ class _CategoryMakerDialogState extends ConsumerState<CategoryMakerDialog> {
     final categories = ref.watch(categoriesProvider);
 
     return AlertDialog(
-      title: const Text('Manage Categories'),
+      title: Text(widget.category == null ? 'Add Category' : 'Edit Category'),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
@@ -88,6 +147,7 @@ class _CategoryMakerDialogState extends ConsumerState<CategoryMakerDialog> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextFormField(
+                    controller: _nameController,
                     decoration: const InputDecoration(
                       labelText: 'Category Name',
                     ),
@@ -97,15 +157,31 @@ class _CategoryMakerDialogState extends ConsumerState<CategoryMakerDialog> {
                       }
                       return null;
                     },
-                    onSaved: (value) {
-                      _categoryName = value!;
-                    },
                   ),
                   TextFormField(
+                    controller: _descriptionController,
                     decoration: const InputDecoration(labelText: 'Description'),
-                    onSaved: (value) {
-                      _categoryDescription = value!;
-                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _showColorPicker,
+                          child: const Text('Pick Color'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: _pickerColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.black),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -118,7 +194,10 @@ class _CategoryMakerDialogState extends ConsumerState<CategoryMakerDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(onPressed: _submit, child: const Text('Add')),
+        ElevatedButton(
+          onPressed: _submit,
+          child: Text(widget.category == null ? 'Add' : 'Update'),
+        ),
       ],
     );
   }

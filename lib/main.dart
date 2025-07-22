@@ -25,6 +25,7 @@ class MyApp extends ConsumerWidget {
       title: 'Cendra',
       theme: theme,
       home: const AuthGate(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
