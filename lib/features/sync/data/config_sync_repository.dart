@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:seo_biling/isar/models/local_schema_model.dart';
-import 'package:seo_biling/isar/services/isar_service.dart';
 import 'package:seo_biling/features/local_auth/presentation/providers/local_auth_providers.dart';
 
 final configSyncRepositoryProvider = Provider<ConfigSyncRepository>((ref) {

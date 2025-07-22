@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/isar/models/local_schema_model.dart'; // Import Isar models
 import 'package:seo_biling/features/local_auth/presentation/providers/local_auth_providers.dart'; // Import local auth providers
 import 'package:seo_biling/features/local_auth/presentation/pages/restaurant_config_editor_page.dart'; // Import config editor page
+import 'package:seo_biling/features/billing/presentation/pages/billing_screen.dart';
 import 'package:seo_biling/features/local_auth/presentation/pages/restaurant_creation_page.dart'; // Import restaurant creation page
 
 class UserDashboardPage extends ConsumerWidget {
@@ -166,6 +167,17 @@ class UserDashboardPage extends ConsumerWidget {
                 );
               },
               child: const Text('Edit Restaurant Configuration'),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const BillingScreen(),
+                  ),
+                );
+              },
+              child: const Text('Go to Billing'),
             ),
           ],
         ),
