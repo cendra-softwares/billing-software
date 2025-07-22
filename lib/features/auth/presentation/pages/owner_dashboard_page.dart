@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/features/auth/presentation/providers/auth_providers.dart';
 import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
 import 'package:seo_biling/features/auth/presentation/providers/theme_provider.dart';
+import 'package:seo_biling/features/auth/presentation/widgets/category_maker_dialog.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/edit_config_dialog.dart';
 
 class OwnerDashboardPage extends ConsumerWidget {
@@ -16,6 +17,16 @@ class OwnerDashboardPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
+          },
+        ),
         title: restaurant.when(
           data: (restaurantData) {
             final restaurantName = restaurantData?['name'] ?? 'Dashboard';
@@ -42,17 +53,42 @@ class OwnerDashboardPage extends ConsumerWidget {
           loading: () => const Text('Loading...'),
           error: (err, stack) => const Text('Error'),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => const EditConfigDialog(),
-              );
-            },
-          ),
-        ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(color: Theme.of(context).primaryColor),
+              child: const Text(
+                'Dashboard Menu',
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('Edit Config'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                showDialog(
+                  context: context,
+                  builder: (context) => const EditConfigDialog(),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.category),
+              title: const Text('Manage Categories'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                showDialog(
+                  context: context,
+                  builder: (context) => const CategoryMakerDialog(),
+                );
+              },
+            ),
+          ],
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

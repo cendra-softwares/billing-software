@@ -6,3 +6,10 @@
 1 . add a config editor in the @/lib/features/auth/presentation/pages/owner_dashboard_page.dart , 
 
 user should be able to edit the accent color of the app using "primary colo" from the config , (please check the DB using mcp) , then the chnaged color should acctually change the apps accent color
+
+different categires for diff restraunts
+
+create a conprehensive menu builder @/lib/features/auth/presentation/pages/owner_dashboard_page.dart using the common react component like "Drawer
+A drawer component for React." inspired by shadcn ,
+
+add options to create categories(make chnages in DB if you want)(and add some defaulf, items  
