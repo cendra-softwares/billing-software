@@ -9,7 +9,8 @@
       ],
       "env": {
         "SUPABASE_ACCESS_TOKEN": "sbp_94ef73965c16bc24b49c335b211c2c7d0d46b3fb"
-      }
+      },
+      "alwaysAllow": []
     }
   }
 }

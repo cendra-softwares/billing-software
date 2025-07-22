@@ -17,6 +17,8 @@ class EditConfigDialog extends ConsumerStatefulWidget {
 
 class _EditConfigDialogState extends ConsumerState<EditConfigDialog> {
   late Color pickerColor;
+  late Color secondaryColor;
+  late Color accentColor;
   bool autoAssignColor = false;
   PlatformFile? _image;
   bool _isLoading = false;
@@ -25,8 +27,30 @@ class _EditConfigDialogState extends ConsumerState<EditConfigDialog> {
   void initState() {
     super.initState();
     final restaurantConfig = ref.read(restaurantConfigProvider);
-    pickerColor =
-        hexToColor(restaurantConfig.value?['primary_color'] ?? '#3B82F6');
+    pickerColor = hexToColor(
+      restaurantConfig.value?['primary_color'] ?? '#3B82F6',
+    );
+    secondaryColor = hexToColor(
+      restaurantConfig.value?['secondary_color'] ?? '#6366F1',
+    );
+    accentColor = hexToColor(
+      restaurantConfig.value?['accent_color'] ?? '#FACC15',
+    );
+  }
+
+  Future<void> _updateColorsFromImage() async {
+    if (_image == null) return;
+
+    final paletteGenerator = await PaletteGenerator.fromImageProvider(
+      FileImage(File(_image!.path!)),
+    );
+
+    setState(() {
+      pickerColor = paletteGenerator.dominantColor?.color ?? pickerColor;
+      secondaryColor =
+          paletteGenerator.lightVibrantColor?.color ?? secondaryColor;
+      accentColor = paletteGenerator.vibrantColor?.color ?? accentColor;
+    });
   }
 
   Future<void> _pickImage() async {
@@ -38,14 +62,7 @@ class _EditConfigDialogState extends ConsumerState<EditConfigDialog> {
       });
 
       if (autoAssignColor) {
-        final paletteGenerator = await PaletteGenerator.fromImageProvider(
-          FileImage(File(_image!.path!)),
-        );
-        if (paletteGenerator.dominantColor != null) {
-          setState(() {
-            pickerColor = paletteGenerator.dominantColor!.color;
-          });
-        }
+        await _updateColorsFromImage();
       }
     }
   }
@@ -61,17 +78,29 @@ class _EditConfigDialogState extends ConsumerState<EditConfigDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (_image != null)
-              Image.file(
-                File(_image!.path!),
-                height: 150,
-              ),
+            if (_image != null) Image.file(File(_image!.path!), height: 150),
             const SizedBox(height: 20),
-            const Text('Primary Color'),
-            const SizedBox(height: 10),
-            ColorPicker(
-              pickerColor: pickerColor,
-              onColorChanged: (color) => setState(() => pickerColor = color),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildColorDisplay('Primary', pickerColor),
+                _buildColorDisplay('Secondary', secondaryColor),
+                _buildColorDisplay('Accent', accentColor),
+              ],
+            ),
+            const SizedBox(height: 20),
+            AbsorbPointer(
+              absorbing: autoAssignColor,
+              child: Opacity(
+                opacity: autoAssignColor ? 0.5 : 1.0,
+                child: ColorPicker(
+                  pickerColor: pickerColor,
+                  onColorChanged: (color) =>
+                      setState(() => pickerColor = color),
+                  enableAlpha: false,
+                  displayThumbColor: true,
+                ),
+              ),
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
@@ -80,12 +109,15 @@ class _EditConfigDialogState extends ConsumerState<EditConfigDialog> {
               label: const Text('Choose Logo'),
             ),
             SwitchListTile(
-              title: const Text('Auto-assign color from logo'),
+              title: const Text('Auto-assign colors from logo'),
               value: autoAssignColor,
-              onChanged: (value) {
+              onChanged: (value) async {
                 setState(() {
                   autoAssignColor = value;
                 });
+                if (autoAssignColor) {
+                  await _updateColorsFromImage();
+                }
               },
             ),
           ],
@@ -104,23 +136,57 @@ class _EditConfigDialogState extends ConsumerState<EditConfigDialog> {
                     _isLoading = true;
                   });
                   try {
-                    final color =
+                    final primaryColorHex =
                         '#${pickerColor.value.toRadixString(16).substring(2)}';
+                    final secondaryColorHex =
+                        '#${secondaryColor.value.toRadixString(16).substring(2)}';
+                    final accentColorHex =
+                        '#${accentColor.value.toRadixString(16).substring(2)}';
+
                     String? imageUrl;
                     if (_image != null) {
                       final imageFile = File(_image!.path!);
-                      final fileName =
-                          '${DateTime.now().millisecondsSinceEpoch}.png';
-                      await Supabase.instance.client.storage
-                          .from('logos')
-                          .upload(fileName, imageFile);
-                      imageUrl = Supabase.instance.client.storage
+                      final restaurantId = restaurant.value!['id'];
+                      final fileName = '$restaurantId.png';
+                      final config = ref.read(restaurantConfigProvider).value;
+                      final existingLogoUrl = config?['logo_url'] as String?;
+
+                      if (existingLogoUrl != null &&
+                          existingLogoUrl.isNotEmpty) {
+                        // A logo exists, so we update it.
+                        await Supabase.instance.client.storage
+                            .from('logos')
+                            .update(
+                              fileName,
+                              imageFile,
+                              fileOptions: const FileOptions(
+                                cacheControl: 'max-age=0',
+                              ),
+                            );
+                      } else {
+                        // No logo exists, so we upload a new one.
+                        await Supabase.instance.client.storage
+                            .from('logos')
+                            .upload(
+                              fileName,
+                              imageFile,
+                              fileOptions: const FileOptions(
+                                cacheControl: 'max-age=0',
+                              ),
+                            );
+                      }
+
+                      final publicUrl = Supabase.instance.client.storage
                           .from('logos')
                           .getPublicUrl(fileName);
+                      imageUrl =
+                          '$publicUrl?t=${DateTime.now().millisecondsSinceEpoch}';
                     }
 
                     final updates = {
-                      'primary_color': color,
+                      'primary_color': primaryColorHex,
+                      'secondary_color': secondaryColorHex,
+                      'accent_color': accentColorHex,
                       if (imageUrl != null) 'logo_url': imageUrl,
                     };
 
@@ -163,6 +229,16 @@ class _EditConfigDialogState extends ConsumerState<EditConfigDialog> {
                 )
               : const Text('Save'),
         ),
+      ],
+    );
+  }
+
+  Widget _buildColorDisplay(String title, Color color) {
+    return Column(
+      children: [
+        Text(title),
+        const SizedBox(height: 4),
+        CircleAvatar(backgroundColor: color, radius: 20),
       ],
     );
   }

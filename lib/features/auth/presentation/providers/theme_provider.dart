@@ -13,9 +13,33 @@ final themeProvider = Provider<ThemeData>((ref) {
 
   return config.when(
     data: (data) {
-      final primaryColor = data?['primary_color'] as String? ?? '#3B82F6';
+      final primaryColor =
+          hexToColor(data?['primary_color'] as String? ?? '#3B82F6');
+      final secondaryColor =
+          hexToColor(data?['secondary_color'] as String? ?? '#6366F1');
+      final accentColor =
+          hexToColor(data?['accent_color'] as String? ?? '#FACC15');
+
       return ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: hexToColor(primaryColor)),
+        primaryColor: primaryColor,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: primaryColor,
+          secondary: secondaryColor,
+          tertiary: accentColor,
+          brightness: Brightness.light,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryColor,
+            foregroundColor:
+                primaryColor.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+          ),
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: primaryColor,
+          foregroundColor:
+              primaryColor.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+        ),
         useMaterial3: true,
       );
     },

@@ -16,7 +16,32 @@ class OwnerDashboardPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Owner Dashboard'),
+        title: restaurant.when(
+          data: (restaurantData) {
+            final restaurantName = restaurantData?['name'] ?? 'Dashboard';
+            return restaurantConfig.when(
+              data: (configData) {
+                final logoUrl = configData?['logo_url'];
+                return Row(
+                  children: [
+                    if (logoUrl != null && logoUrl.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: CircleAvatar(
+                          backgroundImage: NetworkImage(logoUrl),
+                        ),
+                      ),
+                    Text(restaurantName),
+                  ],
+                );
+              },
+              loading: () => Text(restaurantName),
+              error: (err, stack) => Text(restaurantName),
+            );
+          },
+          loading: () => const Text('Loading...'),
+          error: (err, stack) => const Text('Error'),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -60,12 +85,11 @@ class OwnerDashboardPage extends ConsumerWidget {
                         'Restaurant Config:',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
+                      Text('Primary Color: ${data?['primary_color'] ?? 'N/A'}'),
                       Text(
-                          'Primary Color: ${data?['primary_color'] ?? 'N/A'}'),
-                      Text(
-                          'Secondary Color: ${data?['secondary_color'] ?? 'N/A'}'),
-                      Text(
-                          'Accent Color: ${data?['accent_color'] ?? 'N/A'}'),
+                        'Secondary Color: ${data?['secondary_color'] ?? 'N/A'}',
+                      ),
+                      Text('Accent Color: ${data?['accent_color'] ?? 'N/A'}'),
                     ],
                   ),
                   loading: () => const CircularProgressIndicator(),
