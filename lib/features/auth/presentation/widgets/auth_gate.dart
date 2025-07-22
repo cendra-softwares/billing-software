@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/core/widgets/cendra_alert_service.dart';
+import 'package:seo_biling/features/auth/presentation/pages/owner_dashboard_page.dart';
 import 'package:seo_biling/features/auth/presentation/pages/login_page.dart';
 import 'package:seo_biling/features/auth/presentation/providers/auth_providers.dart';
 import 'package:seo_biling/features/home/presentation/pages/home_page.dart';
-import 'package:seo_biling/features/auth/presentation/pages/restaurant_setup_page.dart';
 import 'package:seo_biling/features/auth/presentation/providers/sign_up_controller.dart';
 
 class AuthGate extends ConsumerWidget {
@@ -46,7 +46,16 @@ class AuthGate extends ConsumerWidget {
     return authState.when(
       data: (state) {
         if (state.session?.user != null) {
-          return const HomePage();
+          final isOwner = ref.watch(isRestaurantOwnerProvider);
+          return isOwner.when(
+            data: (isOwner) =>
+                isOwner ? const OwnerDashboardPage() : const HomePage(),
+            loading: () => const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
+            error: (err, stack) =>
+                Scaffold(body: Center(child: Text(err.toString()))),
+          );
         }
         return const LoginPage();
       },
