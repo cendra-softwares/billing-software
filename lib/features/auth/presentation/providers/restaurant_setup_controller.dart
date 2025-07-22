@@ -4,8 +4,6 @@ import 'package:seo_biling/features/auth/data/auth_repository.dart';
 import 'package:seo_biling/features/auth/presentation/pages/owner_dashboard_page.dart';
 import 'package:seo_biling/features/auth/presentation/providers/auth_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:seo_biling/features/auth/presentation/providers/category_providers.dart'; // Import CategoryProviders
-import 'package:seo_biling/features/auth/presentation/providers/menu_item_providers.dart';
 import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
 
 class RestaurantSetupState {
@@ -67,107 +65,10 @@ class RestaurantSetupController extends StateNotifier<RestaurantSetupState> {
         'restaurant_id': restaurantId,
       });
 
-      // Seed default categories
-      final defaultCategories = [
-        {
-          'name': 'Appetizers',
-          'description': 'Starters and small bites',
-          'color': '#4CAF50',
-        }, // Green
-        {
-          'name': 'Main Courses',
-          'description': 'Main dishes',
-          'color': '#2196F3',
-        }, // Blue
-        {
-          'name': 'Desserts',
-          'description': 'Sweet treats',
-          'color': '#FFC107',
-        }, // Amber
-        {
-          'name': 'Beverages',
-          'description': 'Drinks',
-          'color': '#9C27B0',
-        }, // Purple
-      ];
+      // Default categories are already in the database with is_default=true
+      // They will automatically appear for all restaurants via the getCategories query
 
-      final categoryRepository = _ref.read(categoryRepositoryProvider);
-      final menuItemRepository = _ref.read(
-        menuItemRepositoryProvider,
-      ); // Get MenuItemRepository
-
-      for (var categoryData in defaultCategories) {
-        await categoryRepository.addCategory(
-          name: categoryData['name'] as String,
-          description: categoryData['description'] as String,
-          isDefault: true,
-          restaurantId: restaurantId,
-          color: categoryData['color'] as String,
-        );
-      }
-
-      // Seed default menu items
-      final defaultMenuItems = [
-        {
-          'name': 'Crispy Calamari',
-          'description': 'Tender calamari, lightly breaded and fried.',
-          'price': 12.99,
-          'category_name': 'Appetizers',
-        },
-        {
-          'name': 'Spinach & Artichoke Dip',
-          'description': 'Creamy dip served with warm pita bread.',
-          'price': 9.99,
-          'category_name': 'Appetizers',
-        },
-        {
-          'name': 'Caprese Salad',
-          'description': 'Fresh mozzarella, tomatoes, and basil.',
-          'price': 11.99,
-          'category_name': 'Appetizers',
-        },
-        {
-          'name': 'Mushroom Bruschetta',
-          'description': 'Toasted baguette with sautéed mushrooms.',
-          'price': 8.99,
-          'category_name': 'Appetizers',
-        },
-        {
-          'name': 'Grilled Salmon',
-          'description': 'Served with asparagus and mashed potatoes.',
-          'price': 24.50,
-          'category_name': 'Main Courses',
-        },
-        {
-          'name': 'Chocolate Lava Cake',
-          'description': 'Warm chocolate cake with a molten center.',
-          'price': 8.00,
-          'category_name': 'Desserts',
-        },
-        {
-          'name': 'Coca-Cola',
-          'description': 'Refreshing soft drink.',
-          'price': 3.00,
-          'category_name': 'Beverages',
-        },
-      ];
-
-      // Fetch categories to get their IDs
-      final categories = await categoryRepository.getCategories(restaurantId);
-      final categoryMap = {for (var cat in categories) cat['name']: cat['id']};
-
-      for (var itemData in defaultMenuItems) {
-        final categoryId = categoryMap[itemData['category_name']];
-        if (categoryId != null) {
-          await menuItemRepository.addMenuItem(
-            name: itemData['name'] as String,
-            description: itemData['description'] as String,
-            price: itemData['price'] as double,
-            categoryId: categoryId,
-            restaurantId: restaurantId,
-          );
-        }
-      }
+      // No need to seed default menu items - let restaurants create their own
 
       _ref.invalidate(restaurantProvider);
       _ref.invalidate(restaurantConfigProvider);
