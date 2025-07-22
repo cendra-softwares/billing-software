@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/auth_repository.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepository();
+  return AuthRepository(ref);
 });
 
 final authStateProvider = StreamProvider<AuthState>((ref) {

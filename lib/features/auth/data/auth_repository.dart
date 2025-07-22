@@ -1,7 +1,13 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:seo_biling/features/auth/presentation/providers/auth_providers.dart';
+import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthRepository {
   final SupabaseClient _client = Supabase.instance.client;
+  final Ref _ref;
+
+  AuthRepository(this._ref);
 
   Future<void> signInWithPassword(String email, String password) async {
     try {
@@ -51,6 +57,9 @@ class AuthRepository {
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
+      _ref.invalidate(restaurantProvider);
+      _ref.invalidate(restaurantConfigProvider);
+      _ref.invalidate(isRestaurantOwnerProvider);
     } on AuthException catch (e) {
       throw e.message;
     }
