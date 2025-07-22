@@ -4,23 +4,30 @@ import 'package:seo_biling/core/widgets/cendra_alert_service.dart';
 import 'package:seo_biling/features/auth/presentation/pages/login_page.dart';
 import 'package:seo_biling/features/auth/presentation/providers/auth_providers.dart';
 import 'package:seo_biling/features/home/presentation/pages/home_page.dart';
+import 'package:seo_biling/features/auth/presentation/pages/restaurant_setup_page.dart';
+import 'package:seo_biling/features/auth/presentation/providers/sign_up_controller.dart';
 
-class AuthGate extends ConsumerStatefulWidget {
+class AuthGate extends ConsumerWidget {
   const AuthGate({super.key});
 
   @override
-  ConsumerState<AuthGate> createState() => _AuthGateState();
-}
-
-class _AuthGateState extends ConsumerState<AuthGate> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
 
-    // Listen for logout messages
+    ref.listen<SignUpState>(signUpControllerProvider, (previous, next) {
+      if (previous?.isLoading == true &&
+          !next.isLoading &&
+          next.error == null) {
+        CendraAlertService.showSuccess(
+          context,
+          'Account Created',
+          description: 'Welcome aboard!',
+        );
+      }
+    });
+
     ref.listen<String?>(authMessageProvider, (previous, next) {
       if (next != null && context.mounted) {
-        // Use a post-frame callback with a small delay to ensure the widget tree is stable
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Future.delayed(const Duration(milliseconds: 100), () {
             if (context.mounted) {
@@ -29,7 +36,6 @@ class _AuthGateState extends ConsumerState<AuthGate> {
                 'Logged Out',
                 description: next,
               );
-              // Clear the message after showing
               ref.read(authMessageProvider.notifier).state = null;
             }
           });

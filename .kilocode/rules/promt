@@ -1,3 +1,8 @@
-Leveraging the guidelines in `@/.kilocode/rules/flutter-rules.md`, `@/.kilocode/rules/project-overview.md`, and `@/.kilocode/rules/UI-UX.md`, develop the foundational Flutter UI for a billing interface, ensuring the design is fully informed by and compatible with the database schema. Check the Database !!, Firstly our priority is to make a fully offline storage /  optimised app for full offline supoort thats why we are using isar, so build the 
+2 > Leveraging the guidelines in `@/.kilocode/rules/flutter-rules.md`, `@/.kilocode/rules/project-overview.md`, and `@/.kilocode/rules/UI-UX.md`, develop the foundational Flutter UI for a billing interface, ensuring the design is fully informed by and compatible with the database schema. Check the Database !!, Firstly our priority is to make a fully offline storage /  optimised app for full offline supoort thats why we are using isar, so build the 
 
 <!-- D:\Dev\Flutter\Project\billing\.kilocode\rules create a .md file to explain how to use the snack bar isnide the @d:\Dev\Flutter\Project\billing/.kilocode\rules/  -->
+
+
+1 . add a config editor in the @/lib/features/auth/presentation/pages/owner_dashboard_page.dart , 
+
+user should be able to edit the accent color of the app using "primary colo" from the config , (please check the DB using mcp) , then the chnaged color should acctually change the apps accent color

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/core/widgets/loading_overlay.dart';
 import 'package:seo_biling/core/widgets/cendra_alert_service.dart';
+import 'package:seo_biling/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:seo_biling/features/auth/presentation/providers/login_controller.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -117,7 +118,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           const SizedBox(height: 24),
 
                           // Footer
-                          _buildFooter(theme),
+                          _buildFooter(context, theme),
                         ],
                       ),
                     ),
@@ -453,7 +454,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildFooter(ThemeData theme) {
+  Widget _buildFooter(BuildContext context, ThemeData theme) {
     return Column(
       children: [
         Divider(
@@ -461,27 +462,27 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           thickness: 1,
         ),
         const SizedBox(height: 16),
-        Text(
-          'Secure login powered by Supabase',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.6),
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.security,
-              size: 16,
-              color: theme.colorScheme.primary.withOpacity(0.7),
-            ),
-            const SizedBox(width: 4),
             Text(
-              'Your data is protected',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              "Don't have an account?",
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => const SignUpPage(),
+                ));
+              },
+              child: Text(
+                'Sign Up',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                ),
               ),
             ),
           ],
