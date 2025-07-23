@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:seo_biling/features/auth/presentation/providers/auth_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final restaurantProvider = FutureProvider.autoDispose((ref) async {

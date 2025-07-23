@@ -1,11 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:seo_biling/features/auth/presentation/providers/menu_item_providers.dart';
-import 'package:seo_biling/features/auth/presentation/providers/category_providers.dart';
-import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
-import 'package:seo_biling/features/auth/presentation/widgets/category_maker_dialog.dart';
-import 'package:seo_biling/features/auth/presentation/widgets/menu_item_dialog.dart';
-import 'package:seo_biling/core/widgets/cendra_alert_service.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/categories_panel.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/menu_items_panel.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/additional_tools_panel.dart';

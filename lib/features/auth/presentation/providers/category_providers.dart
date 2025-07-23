@@ -43,7 +43,7 @@ class CategoryRepository {
           .select()
           .or('restaurant_id.eq.$restaurantId,is_default.eq.true');
 
-      return response as List<Map<String, dynamic>>;
+      return response;
     } catch (e) {
       throw Exception(e.toString());
     }

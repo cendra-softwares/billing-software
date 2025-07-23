@@ -3,9 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/features/auth/presentation/providers/auth_providers.dart';
 import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
 import 'package:seo_biling/features/auth/presentation/pages/menu_management_page.dart';
-import 'package:seo_biling/features/auth/presentation/pages/login_page.dart'; // Import LoginPage
-import 'package:seo_biling/features/auth/data/auth_repository.dart'; // Import AuthRepository
-import 'package:seo_biling/features/auth/presentation/providers/theme_provider.dart';
+// Import LoginPage
+// Import AuthRepository
 import 'package:seo_biling/features/auth/presentation/widgets/category_maker_dialog.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/edit_config_dialog.dart';
 
