@@ -1,8 +1,38 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final supabaseProvider = Provider((ref) => Supabase.instance.client);
+
+final priceRangeProvider = StateProvider<RangeValues?>((ref) => null);
+final itemTypeFilterProvider = StateProvider<String?>((ref) => null);
+
+final filteredMenuItemsProvider = Provider.autoDispose<List<Map<String, dynamic>>>((ref) {
+  final menuItems = ref.watch(menuItemsProvider).value ?? [];
+  final priceRange = ref.watch(priceRangeProvider);
+  final itemType = ref.watch(itemTypeFilterProvider);
+
+  return menuItems.where((item) {
+    // Price range filter
+    if (priceRange != null) {
+      final price = item['price'] as double;
+      if (price < priceRange.start || price > priceRange.end) {
+        return false;
+      }
+    }
+
+    // Item type filter
+    if (itemType != null) {
+      final type = item['menu_items']['item_type'] as String?;
+      if (type != itemType) {
+        return false;
+      }
+    }
+
+    return true;
+  }).toList();
+});
 
 final menuItemRepositoryProvider = Provider((ref) => MenuItemRepository(ref.read(supabaseProvider)));
 

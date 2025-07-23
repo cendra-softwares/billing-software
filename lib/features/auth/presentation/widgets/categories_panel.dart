@@ -14,53 +14,84 @@ class CategoriesPanel extends ConsumerWidget {
     final searchQuery = ref.watch(categorySearchQueryProvider);
     final fuzzySearchService = ref.read(fuzzySearchServiceProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Categories'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => const CategoryMakerDialog(),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              onChanged: (value) {
-                ref.read(categorySearchQueryProvider.notifier).state = value;
-              },
-              decoration: InputDecoration(
-                hintText: 'Search categories...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Categories',
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => const CategoryMakerDialog(),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextField(
+            onChanged: (value) {
+              ref.read(categorySearchQueryProvider.notifier).state = value;
+            },
+            decoration: InputDecoration(
+              hintText: 'Search categories...',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
               ),
             ),
           ),
-          Expanded(
-            child: categoriesAsyncValue.when(
-              data: (categories) {
-                final filteredCategories = fuzzySearchService.search(
-                  query: searchQuery,
-                  items: categories,
-                  choiceGetter: (category) => category['name'],
-                );
+        ),
+        Expanded(
+          child: categoriesAsyncValue.when(
+            data: (categories) {
+              final filteredCategories = fuzzySearchService.search(
+                query: searchQuery,
+                items: categories,
+                choiceGetter: (category) => category['name'],
+              );
 
-                return ListView.builder(
-                  itemCount: filteredCategories.length,
-                  itemBuilder: (context, index) {
-                    final category = filteredCategories[index];
-                    final isSelected = selectedCategory?['id'] == category['id'];
+              return ListView.builder(
+                itemCount: filteredCategories.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
                     return ListTile(
+                      leading: const Icon(Icons.list),
+                      title: const Text('Show All'),
+                      onTap: () {
+                        ref.read(selectedCategoryProvider.notifier).state =
+                            null;
+                      },
+                    );
+                  }
+                  final category = filteredCategories[index - 1];
+                  final isSelected = selectedCategory?['id'] == category['id'];
+                  final colorStr = category['color'] as String?;
+                  final color = colorStr != null
+                      ? Color(int.parse(colorStr.replaceFirst('#', '0xff')))
+                      : null;
+
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        left: BorderSide(
+                          color: color ?? Colors.transparent,
+                          width: 4,
+                        ),
+                      ),
+                    ),
+                    child: ListTile(
                       title: Text(category['name']),
                       trailing: PopupMenuButton(
                         itemBuilder: (context) => [
@@ -115,20 +146,23 @@ class CategoriesPanel extends ConsumerWidget {
                           }
                         },
                       ),
-                      tileColor: isSelected ? Theme.of(context).primaryColor.withOpacity(0.2) : null,
+                      tileColor: isSelected
+                          ? Theme.of(context).primaryColor.withOpacity(0.2)
+                          : null,
                       onTap: () {
-                        ref.read(selectedCategoryProvider.notifier).state = category;
+                        ref.read(selectedCategoryProvider.notifier).state =
+                            category;
                       },
-                    );
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err')),
-            ),
+                    ),
+                  );
+                },
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Error: $err')),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

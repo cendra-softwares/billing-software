@@ -33,166 +33,217 @@ class _MenuItemsPanelState extends ConsumerState<MenuItemsPanel> {
     final menuItemsAsyncValue = ref.watch(menuItemsProvider);
     final fuzzySearchService = ref.read(fuzzySearchServiceProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          selectedCategory == null
-              ? 'All Menu Items'
-              : selectedCategory['name'],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => const MenuItemDialog(),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) {
-                setState(() {}); // Rebuild to filter items
-              },
-              decoration: InputDecoration(
-                hintText: 'Search items...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  selectedCategory == null
+                      ? 'All Menu Items'
+                      : selectedCategory['name'],
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
-            ),
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => const MenuItemDialog(),
+                  );
+                },
+              ),
+            ],
           ),
-          Expanded(
-            child: menuItemsAsyncValue.when(
-              data: (menuItems) {
-                final searchTerm = _searchController.text;
-                List<Map<String, dynamic>> itemsToSearch = [];
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    setState(() {}); // Rebuild to filter items
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search items...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                ),
+              ),
+              PopupMenuButton<String>(
+                onSelected: (String result) {
+                  ref.read(itemTypeFilterProvider.notifier).state = result;
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(value: 'veg', child: Text('Veg')),
+                  const PopupMenuItem<String>(
+                    value: 'non_veg',
+                    child: Text('Non-Veg'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'default',
+                    child: Text('Default'),
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () {
+                  ref.read(priceRangeProvider.notifier).state = null;
+                  ref.read(itemTypeFilterProvider.notifier).state = null;
+                  _searchController.clear();
+                },
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: RangeSlider(
+            values: ref.watch(priceRangeProvider) ?? const RangeValues(0, 1000),
+            min: 0,
+            max: 1000,
+            divisions: 20,
+            labels: RangeLabels(
+              ref.watch(priceRangeProvider)?.start.round().toString() ?? '0',
+              ref.watch(priceRangeProvider)?.end.round().toString() ?? '1000',
+            ),
+            onChanged: (RangeValues values) {
+              ref.read(priceRangeProvider.notifier).state = values;
+            },
+          ),
+        ),
+        Expanded(
+          child: menuItemsAsyncValue.when(
+            data: (menuItems) {
+              final filteredItems = ref.watch(filteredMenuItemsProvider);
+              final searchTerm = _searchController.text;
 
-                if (searchTerm.isEmpty && selectedCategory != null) {
-                  itemsToSearch = menuItems.where((item) {
-                    final menuItemData = item['menu_items'];
-                    return menuItemData['category_id'] ==
-                        selectedCategory['id'];
-                  }).toList();
-                } else {
-                  itemsToSearch = menuItems;
-                }
+              List<Map<String, dynamic>> itemsToDisplay = filteredItems;
 
-                final filteredItems = fuzzySearchService.search(
+              if (selectedCategory != null) {
+                itemsToDisplay = itemsToDisplay.where((item) {
+                  final menuItemData = item['menu_items'];
+                  return menuItemData['category_id'] == selectedCategory['id'];
+                }).toList();
+              }
+
+              if (searchTerm.isNotEmpty) {
+                itemsToDisplay = fuzzySearchService.search(
                   query: searchTerm,
-                  items: itemsToSearch,
+                  items: itemsToDisplay,
                   choiceGetter: (item) => item['menu_items']['name'],
                 );
+              }
 
-                if (filteredItems.isEmpty) {
-                  return const Center(
-                    child: Text('No matching menu items found.'),
-                  );
-                }
-
-                return DataTable(
-                  columns: const [
-                    DataColumn(label: Text('Item Name')),
-                    DataColumn(label: Text('Description')),
-                    DataColumn(label: Text('Price')),
-                    DataColumn(label: Text('Actions')),
-                  ],
-                  rows: filteredItems.map((item) {
-                    final menuItemData = item['menu_items'];
-                    final itemType = menuItemData['item_type'] as String?;
-                    Color sideColor = Colors.transparent;
-                    if (itemType == 'veg') {
-                      sideColor = Colors.green;
-                    } else if (itemType == 'non_veg') {
-                      sideColor = Colors.red;
-                    }
-
-                    return DataRow(
-                      cells: [
-                        DataCell(
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                left: BorderSide(color: sideColor, width: 4),
-                              ),
-                            ),
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: Text(menuItemData['name']),
-                          ),
-                        ),
-                        DataCell(Text(menuItemData['description'] ?? 'N/A')),
-                        DataCell(Text('₹${item['price']}')),
-                        DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) =>
-                                        MenuItemDialog(menuItem: item),
-                                  );
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () async {
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Delete Menu Item'),
-                                      content: Text(
-                                        'Are you sure you want to delete ${menuItemData['name']}?',
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(false),
-                                          child: const Text('Cancel'),
-                                        ),
-                                        ElevatedButton(
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(true),
-                                          child: const Text('Delete'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-
-                                  if (confirm == true) {
-                                    final deleteController = ref.read(
-                                      deleteMenuItemControllerProvider.notifier,
-                                    );
-                                    await deleteController.deleteMenuItem(
-                                      item['id'],
-                                    );
-                                    // Optionally show a CendraAlertService message
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    );
-                  }).toList(),
+              if (itemsToDisplay.isEmpty) {
+                return const Center(
+                  child: Text('No matching menu items found.'),
                 );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err')),
-            ),
+              }
+
+              return DataTable(
+                columns: const [
+                  DataColumn(label: Text('Item Name')),
+                  DataColumn(label: Text('Description')),
+                  DataColumn(label: Text('Price')),
+                  DataColumn(label: Text('Actions')),
+                ],
+                rows: filteredItems.map((item) {
+                  final menuItemData = item['menu_items'];
+                  final itemType = menuItemData['item_type'] as String?;
+                  Color sideColor = Colors.transparent;
+                  if (itemType == 'veg') {
+                    sideColor = Colors.green;
+                  } else if (itemType == 'non_veg') {
+                    sideColor = Colors.red;
+                  }
+
+                  return DataRow(
+                    cells: [
+                      DataCell(
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              left: BorderSide(color: sideColor, width: 4),
+                            ),
+                          ),
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Text(menuItemData['name']),
+                        ),
+                      ),
+                      DataCell(Text(menuItemData['description'] ?? 'N/A')),
+                      DataCell(Text('₹${item['price']}')),
+                      DataCell(
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) =>
+                                      MenuItemDialog(menuItem: item),
+                                );
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Delete Menu Item'),
+                                    content: Text(
+                                      'Are you sure you want to delete ${menuItemData['name']}?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(true),
+                                        child: const Text('Delete'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+
+                                if (confirm == true) {
+                                  final deleteController = ref.read(
+                                    deleteMenuItemControllerProvider.notifier,
+                                  );
+                                  await deleteController.deleteMenuItem(
+                                    item['id'],
+                                  );
+                                  // Optionally show a CendraAlertService message
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Error: $err')),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

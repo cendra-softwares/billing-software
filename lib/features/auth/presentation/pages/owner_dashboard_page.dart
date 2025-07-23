@@ -5,7 +5,6 @@ import 'package:seo_biling/features/auth/presentation/providers/dashboard_provid
 import 'package:seo_biling/features/auth/presentation/pages/menu_management_page.dart';
 // Import LoginPage
 // Import AuthRepository
-import 'package:seo_biling/features/menu_management/presentation/widgets/category_maker_dialog.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/edit_config_dialog.dart';
 
 class OwnerDashboardPage extends ConsumerWidget {
