@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/features/auth/presentation/providers/auth_providers.dart';
 import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
 import 'package:seo_biling/features/auth/presentation/pages/menu_management_page.dart';
+import 'package:seo_biling/features/tables/presentation/pages/table_selection_page.dart';
+import 'package:seo_biling/features/billing/presentation/pages/active_orders_page.dart';
 // Import LoginPage
 // Import AuthRepository
 import 'package:seo_biling/features/auth/presentation/widgets/edit_config_dialog.dart';
@@ -91,6 +93,32 @@ class OwnerDashboardPage extends ConsumerWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const MenuManagementPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.point_of_sale),
+                    title: const Text('Billing'),
+                    onTap: () {
+                      Navigator.pop(context); // Close the drawer
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const TableSelectionPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.list_alt),
+                    title: const Text('Active Orders'),
+                    onTap: () {
+                      Navigator.pop(context); // Close the drawer
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ActiveOrdersPage(),
                         ),
                       );
                     },

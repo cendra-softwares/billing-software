@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/additional_tools_dialog.dart';
+import 'package:seo_biling/features/tables/presentation/widgets/table_management_dialog.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/categories_panel.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/combo_management_panel.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/menu_items_panel.dart';
@@ -26,12 +27,21 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> {
                   context: context,
                   builder: (context) => const AdditionalToolsDialog(),
                 );
+              } else if (value == 'manage_tables') {
+                showDialog(
+                  context: context,
+                  builder: (context) => const TableManagementDialog(),
+                );
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
               const PopupMenuItem<String>(
                 value: 'additional_tools',
                 child: Text('Additional Tools'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'manage_tables',
+                child: Text('Manage Tables'),
               ),
             ],
           ),

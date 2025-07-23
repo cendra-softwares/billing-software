@@ -54,6 +54,7 @@ dependencies:
   fuzzywuzzy: ^1.2.0
   window_manager: ^0.5.1
   bitsdojo_window: ^0.1.6
+  pdf: ^3.10.8
 
 dev_dependencies:
   flutter_test:
