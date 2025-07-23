@@ -5,7 +5,7 @@ import 'package:seo_biling/features/auth/presentation/providers/dashboard_provid
 import 'package:seo_biling/features/auth/presentation/pages/menu_management_page.dart';
 // Import LoginPage
 // Import AuthRepository
-import 'package:seo_biling/features/auth/presentation/widgets/category_maker_dialog.dart';
+import 'package:seo_biling/features/menu_management/presentation/widgets/category_maker_dialog.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/edit_config_dialog.dart';
 
 class OwnerDashboardPage extends ConsumerWidget {
@@ -80,17 +80,6 @@ class OwnerDashboardPage extends ConsumerWidget {
                       showDialog(
                         context: context,
                         builder: (context) => const EditConfigDialog(),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.category),
-                    title: const Text('Manage Categories'),
-                    onTap: () {
-                      Navigator.pop(context); // Close the drawer
-                      showDialog(
-                        context: context,
-                        builder: (context) => const CategoryMakerDialog(),
                       );
                     },
                   ),

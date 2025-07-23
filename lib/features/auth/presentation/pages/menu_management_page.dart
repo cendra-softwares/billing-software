@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/categories_panel.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/menu_items_panel.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/additional_tools_panel.dart';
+import 'package:seo_biling/features/menu_management/presentation/widgets/category_maker_dialog.dart';
 
 class MenuManagementPage extends ConsumerStatefulWidget {
   const MenuManagementPage({super.key});
@@ -17,24 +18,26 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Menu Management'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.category),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => const CategoryMakerDialog(),
+              );
+            },
+          ),
+        ],
       ),
       body: Row(
         children: [
           // Left Panel (Categories)
-          const Expanded(
-            flex: 2,
-            child: CategoriesPanel(),
-          ),
+          const Expanded(flex: 2, child: CategoriesPanel()),
           // Middle Panel (Menu Items)
-          const Expanded(
-            flex: 5,
-            child: MenuItemsPanel(),
-          ),
+          const Expanded(flex: 5, child: MenuItemsPanel()),
           // Right Panel (Promotional Tools)
-          const Expanded(
-            flex: 3,
-            child: AdditionalToolsPanel(),
-          ),
+          const Expanded(flex: 3, child: AdditionalToolsPanel()),
         ],
       ),
     );
