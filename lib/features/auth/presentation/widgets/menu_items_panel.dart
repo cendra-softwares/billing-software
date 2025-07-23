@@ -155,9 +155,10 @@ class _MenuItemsPanelState extends ConsumerState<MenuItemsPanel> {
                   DataColumn(label: Text('Item Name')),
                   DataColumn(label: Text('Description')),
                   DataColumn(label: Text('Price')),
+                  DataColumn(label: Text('Available')), // New column
                   DataColumn(label: Text('Actions')),
                 ],
-                rows: filteredItems.map((item) {
+                rows: itemsToDisplay.map((item) {
                   final menuItemData = item['menu_items'];
                   final itemType = menuItemData['item_type'] as String?;
                   Color sideColor = Colors.transparent;
@@ -182,6 +183,30 @@ class _MenuItemsPanelState extends ConsumerState<MenuItemsPanel> {
                       ),
                       DataCell(Text(menuItemData['description'] ?? 'N/A')),
                       DataCell(Text('₹${item['price']}')),
+                      DataCell(
+                        Switch(
+                          value: item['is_available'] as bool,
+                          onChanged: (bool value) async {
+                            final updateController = ref.read(
+                              updateMenuItemAvailabilityControllerProvider
+                                  .notifier,
+                            );
+                            await updateController.updateMenuItemAvailability(
+                              item['id'],
+                              value,
+                            );
+                            // Update the local state to reflect the change immediately
+                            setState(() {
+                              final index = itemsToDisplay.indexWhere(
+                                (element) => element['id'] == item['id'],
+                              );
+                              if (index != -1) {
+                                itemsToDisplay[index]['is_available'] = value;
+                              }
+                            });
+                          },
+                        ),
+                      ),
                       DataCell(
                         Row(
                           children: [
@@ -227,7 +252,9 @@ class _MenuItemsPanelState extends ConsumerState<MenuItemsPanel> {
                                   await deleteController.deleteMenuItem(
                                     item['id'],
                                   );
-                                  // Optionally show a CendraAlertService message
+                                  ref.invalidate(
+                                    menuItemsProvider,
+                                  ); // Refresh the list after deletion
                                 }
                               },
                             ),

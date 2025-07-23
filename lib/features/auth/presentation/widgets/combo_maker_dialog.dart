@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/features/auth/presentation/providers/combo_providers.dart';
 import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
 import 'package:seo_biling/features/auth/presentation/providers/menu_item_providers.dart';
+import 'package:seo_biling/features/search/fuzzy_search_service.dart';
+import 'package:seo_biling/features/auth/presentation/widgets/combo_info_dialog.dart'; // Import the new dialog
+
+final menuItemSearchQueryProvider = StateProvider<String>((ref) => '');
 
 class ComboMakerDialog extends ConsumerStatefulWidget {
   final Map<String, dynamic>? combo;
@@ -17,23 +21,40 @@ class _ComboMakerDialogState extends ConsumerState<ComboMakerDialog> {
   late final TextEditingController _nameController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _priceController;
-  final List<Map<String, dynamic>> _selectedItems = [];
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.combo?['name']);
-    _descriptionController = TextEditingController(text: widget.combo?['description']);
-    _priceController = TextEditingController(text: widget.combo?['price']?.toString());
+    _descriptionController = TextEditingController(
+      text: widget.combo?['description'],
+    );
+    _priceController = TextEditingController(
+      text: widget.combo?['price']?.toString(),
+    );
 
     if (widget.combo != null && widget.combo!['combo_items'] != null) {
-      for (var item in widget.combo!['combo_items']) {
-        _selectedItems.add({
-          'id': item['menu_items']['id'],
-          'name': item['menu_items']['name'],
-          'quantity': item['quantity'],
-        });
-      }
+      // Initialize the Riverpod state with existing combo items
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref
+            .read(selectedComboItemsProvider.notifier)
+            .setItems(
+              (widget.combo!['combo_items'] as List)
+                  .map<Map<String, dynamic>>(
+                    (item) => {
+                      'id': item['menu_items']['id'],
+                      'name': item['menu_items']['name'],
+                      'quantity': item['quantity'],
+                    },
+                  )
+                  .toList(),
+            );
+      });
+    } else {
+      // Clear the selected items if it's a new combo
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(selectedComboItemsProvider.notifier).setItems([]);
+      });
     }
   }
 
@@ -49,134 +70,187 @@ class _ComboMakerDialogState extends ConsumerState<ComboMakerDialog> {
   Widget build(BuildContext context) {
     final menuItemsAsync = ref.watch(menuItemsProvider);
     final restaurant = ref.watch(restaurantProvider).value;
+    final selectedItems = ref.watch(selectedComboItemsProvider);
 
     return AlertDialog(
       title: const Text('Create Combo'),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Combo Name'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a name';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(labelText: 'Description'),
-                ),
-                TextFormField(
-                  controller: _priceController,
-                  decoration: const InputDecoration(labelText: 'Price'),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a price';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Please enter a valid number';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Select Items:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                menuItemsAsync.when(
-                  data: (items) => SizedBox(
-                    height: 200,
-                    child: ListView.builder(
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        final item = items[index];
-                        final menuItem = item['menu_items'];
-                        final isSelected = _selectedItems.any(
-                          (selected) => selected['id'] == menuItem['id'],
-                        );
-                        return CheckboxListTile(
-                          title: Text(menuItem['name']),
-                          value: isSelected,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              if (value == true) {
-                                _selectedItems.add({
-                                  'id': menuItem['id'],
-                                  'name': menuItem['name'],
-                                  'quantity': 1,
-                                });
-                              } else {
-                                _selectedItems.removeWhere(
-                                  (selected) =>
-                                      selected['id'] == menuItem['id'],
-                                );
-                              }
-                            });
-                          },
-                        );
+      content: Row(
+        // Changed to Row to place ComboInfoDialog next to the form
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 400, // Increased width for the form
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Combo Name',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a name';
+                        }
+                        return null;
                       },
                     ),
-                  ),
-                  loading: () => const CircularProgressIndicator(),
-                  error: (e, s) => const Text('Could not load items'),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Selected Items:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                SizedBox(
-                  height: 150,
-                  child: ListView.builder(
-                    itemCount: _selectedItems.length,
-                    itemBuilder: (context, index) {
-                      final item = _selectedItems[index];
-                      return ListTile(
-                        title: Text(item['name']),
-                        trailing: SizedBox(
-                          width: 100,
-                          child: Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove),
-                                onPressed: () {
-                                  setState(() {
-                                    if (item['quantity'] > 1) {
-                                      item['quantity']--;
-                                    }
-                                  });
+                    TextFormField(
+                      controller: _descriptionController,
+                      decoration: const InputDecoration(
+                        labelText: 'Description',
+                      ),
+                    ),
+                    TextFormField(
+                      controller: _priceController,
+                      decoration: const InputDecoration(labelText: 'Price'),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        // Added onChanged to trigger rebuild for ComboInfoDialog
+                        setState(() {});
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a price';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Please enter a valid number';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Select Items:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: TextField(
+                        onChanged: (value) {
+                          ref.read(menuItemSearchQueryProvider.notifier).state =
+                              value;
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Search menu items...',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                      ),
+                    ),
+                    menuItemsAsync.when(
+                      data: (items) {
+                        final searchQuery = ref.watch(
+                          menuItemSearchQueryProvider,
+                        );
+                        final fuzzySearchService = ref.read(
+                          fuzzySearchServiceProvider,
+                        );
+
+                        final filteredItems = fuzzySearchService.search(
+                          query: searchQuery,
+                          items: items,
+                          choiceGetter: (item) => item['menu_items']['name'],
+                        );
+
+                        return SizedBox(
+                          height: 150,
+                          child: ListView.builder(
+                            itemCount: filteredItems.length,
+                            itemBuilder: (context, index) {
+                              final item = filteredItems[index];
+                              final menuItem = item['menu_items'];
+                              final isSelected = selectedItems.any(
+                                (selected) => selected['id'] == menuItem['id'],
+                              );
+                              final isAvailable =
+                                  item['is_available'] as bool? ?? true;
+
+                              return CheckboxListTile(
+                                title: Text(
+                                  menuItem['name'],
+                                  style: TextStyle(
+                                    color: isAvailable ? null : Colors.grey,
+                                  ),
+                                ),
+                                subtitle: isAvailable
+                                    ? null
+                                    : const Text(
+                                        'Unavailable',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                value: isSelected,
+                                onChanged: (bool? value) {
+                                  if (value == true) {
+                                    ref
+                                        .read(
+                                          selectedComboItemsProvider.notifier,
+                                        )
+                                        .addItem({
+                                          'id': menuItem['id'],
+                                          'name': menuItem['name'],
+                                          'quantity': 1,
+                                        });
+                                  } else {
+                                    ref
+                                        .read(
+                                          selectedComboItemsProvider.notifier,
+                                        )
+                                        .removeItem(menuItem['id']);
+                                  }
                                 },
-                              ),
-                              Text(item['quantity'].toString()),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      loading: () => const CircularProgressIndicator(),
+                      error: (e, s) => const Text('Could not load items'),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Selected Items:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(
+                      height: 100,
+                      child: ListView.builder(
+                        itemCount: selectedItems.length,
+                        itemBuilder: (context, index) {
+                          final item = selectedItems[index];
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('${item['name']} (x${item['quantity']})'),
                               IconButton(
-                                icon: const Icon(Icons.add),
+                                icon: const Icon(Icons.remove_circle),
                                 onPressed: () {
-                                  setState(() {
-                                    item['quantity']++;
-                                  });
+                                  ref
+                                      .read(selectedComboItemsProvider.notifier)
+                                      .removeItem(item['id']);
                                 },
                               ),
                             ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+          const SizedBox(width: 20), // Spacer between form and info dialog
+          ComboInfoDialog(
+            // Display the ComboInfoDialog
+            comboPrice: double.tryParse(_priceController.text) ?? 0.0,
+          ),
+        ],
       ),
       actions: [
         TextButton(
@@ -187,17 +261,32 @@ class _ComboMakerDialogState extends ConsumerState<ComboMakerDialog> {
           onPressed: () async {
             if (_formKey.currentState!.validate() && restaurant != null) {
               if (widget.combo == null) {
-                await ref.read(addComboControllerProvider.notifier).addCombo(
+                await ref
+                    .read(
+                      manageComboControllerProvider.notifier,
+                    ) // Changed to manageComboControllerProvider
+                    .addCombo(
                       name: _nameController.text,
                       description: _descriptionController.text,
                       price: double.parse(_priceController.text),
                       restaurantId: restaurant['id'],
-                      items: _selectedItems,
+                      items: selectedItems,
                     );
               } else {
-                // TODO: Implement update combo functionality
+                await ref
+                    .read(
+                      manageComboControllerProvider.notifier,
+                    ) // Changed to manageComboControllerProvider
+                    .updateCombo(
+                      // Calling updateCombo
+                      comboId: widget.combo!['id'], // Pass combo ID
+                      name: _nameController.text,
+                      description: _descriptionController.text,
+                      price: double.parse(_priceController.text),
+                      items: selectedItems,
+                    );
               }
-              ref.invalidate(combosProvider);
+              ref.refresh(combosProvider); // Changed to ref.refresh
               Navigator.of(context).pop();
             }
           },

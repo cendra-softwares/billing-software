@@ -136,6 +136,33 @@ class MenuItemRepository {
       throw Exception('Error deleting menu item: $e');
     }
   }
+  Future<void> updateMenuItemAvailability(int restaurantMenuItemId, bool isAvailable) async {
+    try {
+      await _client.from('restaurant_menus').update({'is_available': isAvailable}).eq('id', restaurantMenuItemId);
+    } catch (e) {
+      throw Exception('Error updating menu item availability: $e');
+    }
+  }
+}
+
+final updateMenuItemAvailabilityControllerProvider = StateNotifierProvider<UpdateMenuItemAvailabilityController, AsyncValue<void>>((ref) {
+  return UpdateMenuItemAvailabilityController(ref.read(menuItemRepositoryProvider));
+});
+
+class UpdateMenuItemAvailabilityController extends StateNotifier<AsyncValue<void>> {
+  final MenuItemRepository _menuItemRepository;
+
+  UpdateMenuItemAvailabilityController(this._menuItemRepository) : super(const AsyncValue.data(null));
+
+  Future<void> updateMenuItemAvailability(int restaurantMenuItemId, bool isAvailable) async {
+    state = const AsyncValue.loading();
+    try {
+      await _menuItemRepository.updateMenuItemAvailability(restaurantMenuItemId, isAvailable);
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
 }
 
 final menuItemsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
