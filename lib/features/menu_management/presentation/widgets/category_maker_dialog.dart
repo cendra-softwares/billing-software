@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/features/menu_management/presentation/providers/category_providers.dart';
 import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:seo_biling/features/search/fuzzy_search_service.dart';
 
 class CategoryMakerDialog extends ConsumerStatefulWidget {
   final Map<String, dynamic>? category;
@@ -19,16 +20,20 @@ class _CategoryMakerDialogState extends ConsumerState<CategoryMakerDialog> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late Color _pickerColor;
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.category?['name'] ?? '');
-    _descriptionController =
-        TextEditingController(text: widget.category?['description'] ?? '');
+    _nameController = TextEditingController(
+      text: widget.category?['name'] ?? '',
+    );
+    _descriptionController = TextEditingController(
+      text: widget.category?['description'] ?? '',
+    );
     _pickerColor = widget.category?['color'] != null
         ? Color(int.parse(widget.category!['color'].replaceFirst('#', '0xff')))
-        : Colors.blue; // Default color
+        : Colors.blue;
   }
 
   @override
@@ -44,7 +49,9 @@ class _CategoryMakerDialogState extends ConsumerState<CategoryMakerDialog> {
       final colorHex = '#${_pickerColor.value.toRadixString(16).substring(2)}';
 
       if (widget.category == null) {
-        ref.read(addCategoryControllerProvider.notifier).addCategory(
+        ref
+            .read(addCategoryControllerProvider.notifier)
+            .addCategory(
               name: _nameController.text,
               description: _descriptionController.text,
               isDefault: false,
@@ -52,7 +59,9 @@ class _CategoryMakerDialogState extends ConsumerState<CategoryMakerDialog> {
               color: colorHex,
             );
       } else {
-        ref.read(updateCategoryControllerProvider.notifier).updateCategory(
+        ref
+            .read(updateCategoryControllerProvider.notifier)
+            .updateCategory(
               categoryId: widget.category!['id'],
               name: _nameController.text,
               description: _descriptionController.text,
@@ -63,126 +72,136 @@ class _CategoryMakerDialogState extends ConsumerState<CategoryMakerDialog> {
     }
   }
 
-  void _showColorPicker() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Pick a color!'),
-        content: SingleChildScrollView(
-          child: ColorPicker(
-            pickerColor: _pickerColor,
-            onColorChanged: (color) {
-              setState(() {
-                _pickerColor = color;
-              });
-            },
-            pickerAreaHeightPercent: 0.8,
-          ),
-        ),
-        actions: <Widget>[
-          ElevatedButton(
-            child: const Text('Got it'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final categories = ref.watch(categoriesProvider);
+    final categoriesAsyncValue = ref.watch(categoriesProvider);
+    final fuzzySearchService = ref.read(fuzzySearchServiceProvider);
 
     return AlertDialog(
       title: Text(widget.category == null ? 'Add Category' : 'Edit Category'),
       content: SizedBox(
-        width: double.maxFinite,
+        width: 600,
+        height: 500,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Search categories...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+              ),
+            ),
             Expanded(
-              child: categories.when(
-                data: (data) => ListView.builder(
-                  itemCount: data.length,
-                  itemBuilder: (context, index) {
-                    final category = data[index];
-                    final colorStr = category['color'] as String?;
-                    final color = colorStr != null
-                        ? Color(int.parse(colorStr.replaceFirst('#', '0xff')))
-                        : null;
+              child: categoriesAsyncValue.when(
+                data: (categories) {
+                  final filteredCategories = fuzzySearchService.search(
+                    query: _searchQuery,
+                    items: categories,
+                    choiceGetter: (category) => category['name'],
+                  );
 
-                    return Container(
-                      decoration: BoxDecoration(
-                        border: Border(
-                          left: BorderSide(
-                            color: color ?? Colors.transparent,
-                            width: 4,
-                          ),
+                  return ListView.builder(
+                    itemCount: filteredCategories.length,
+                    itemBuilder: (context, index) {
+                      final category = filteredCategories[index];
+                      final colorStr = category['color'] as String?;
+                      final color = colorStr != null
+                          ? Color(int.parse(colorStr.replaceFirst('#', '0xff')))
+                          : null;
+
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: color,
+                          radius: 15,
                         ),
-                      ),
-                      child: ListTile(
                         title: Text(category['name']),
                         subtitle: Text(category['description'] ?? ''),
                         trailing: category['is_default']
-                            ? null
-                            : const Chip(
-                                label: Text('Custom'),
-                                backgroundColor: Colors.orange,
-                              ),
-                      ),
-                    );
-                  },
-                ),
+                            ? const Chip(label: Text('Default'))
+                            : null,
+                        onTap: () {
+                          setState(() {
+                            _nameController.text = category['name'];
+                            _descriptionController.text =
+                                category['description'] ?? '';
+                            _pickerColor = color ?? Colors.blue;
+                          });
+                        },
+                      );
+                    },
+                  );
+                },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (err, stack) => Center(child: Text('Error: $err')),
               ),
             ),
             const Divider(),
-            Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Category Name',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a category name';
-                      }
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    controller: _descriptionController,
-                    decoration: const InputDecoration(labelText: 'Description'),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
+            Flexible(
+              child: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _showColorPicker,
-                          child: const Text('Pick Color'),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Category Name',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a category name';
+                          }
+                          return null;
+                        },
+                      ),
+                      TextFormField(
+                        controller: _descriptionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Description',
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        width: 30,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          color: _pickerColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.black),
-                        ),
+                      const SizedBox(height: 16),
+                      const Text('Category Color'),
+                      Wrap(
+                        spacing: 8.0,
+                        runSpacing: 8.0,
+                        children: Colors.primaries
+                            .map(
+                              (color) => GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _pickerColor = color;
+                                  });
+                                },
+                                child: CircleAvatar(
+                                  backgroundColor: color,
+                                  radius: 20,
+                                  child: _pickerColor == color
+                                      ? const Icon(
+                                          Icons.check,
+                                          color: Colors.white,
+                                        )
+                                      : null,
+                                ),
+                              ),
+                            )
+                            .toList(),
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
           ],

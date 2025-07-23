@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,12 +41,10 @@ class MyApp extends ConsumerWidget {
         body: WindowBorder(
           color: Colors.grey,
           width: 1,
-          child: const Column(
+          child: Column(
             children: [
-              AppTitleBar(),
-              Expanded(
-                child: AuthGate(),
-              ),
+              if (Platform.isLinux) const AppTitleBar(),
+              const Expanded(child: AuthGate()),
             ],
           ),
         ),

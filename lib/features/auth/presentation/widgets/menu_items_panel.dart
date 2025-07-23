@@ -181,7 +181,16 @@ class _MenuItemsPanelState extends ConsumerState<MenuItemsPanel> {
                           child: Text(menuItemData['name']),
                         ),
                       ),
-                      DataCell(Text(menuItemData['description'] ?? 'N/A')),
+                      DataCell(
+                        SizedBox(
+                          width: 150, // Adjust the width as needed
+                          child: Text(
+                            menuItemData['description'] ?? 'N/A',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                          ),
+                        ),
+                      ),
                       DataCell(Text('₹${item['price']}')),
                       DataCell(
                         Switch(

@@ -4,7 +4,6 @@ import 'package:seo_biling/features/auth/presentation/widgets/additional_tools_d
 import 'package:seo_biling/features/auth/presentation/widgets/categories_panel.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/combo_management_panel.dart';
 import 'package:seo_biling/features/auth/presentation/widgets/menu_items_panel.dart';
-import 'package:seo_biling/features/menu_management/presentation/widgets/category_maker_dialog.dart';
 
 class MenuManagementPage extends ConsumerStatefulWidget {
   const MenuManagementPage({super.key});
@@ -20,15 +19,6 @@ class _MenuManagementPageState extends ConsumerState<MenuManagementPage> {
       appBar: AppBar(
         title: const Text('Menu Management'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.category),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => const CategoryMakerDialog(),
-              );
-            },
-          ),
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'additional_tools') {
