@@ -78,7 +78,7 @@ class ComboInfoDialog extends ConsumerWidget {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
                 const Divider(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

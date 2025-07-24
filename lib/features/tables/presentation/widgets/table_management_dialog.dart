@@ -56,7 +56,7 @@ class _TableManagementDialogState extends ConsumerState<TableManagementDialog> {
     final tablesAsyncValue = ref.watch(tablesProvider);
     final List<String?> sections = tablesAsyncValue.when(
       data: (tables) =>
-          tables.map((t) => t['section'] as String?).toSet().toList(),
+          tables.map((t) => t.section).toSet().toList(),
       loading: () => [],
       error: (e, st) => [],
     );

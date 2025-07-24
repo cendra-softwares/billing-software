@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
+import 'package:seo_biling/features/tables/presentation/providers/table_providers.dart';
 
 // This provider will hold the search query for the billing page.
 final billingSearchQueryProvider = StateProvider<String>((ref) => '');
@@ -24,4 +26,21 @@ final totalAmountProvider = Provider<double>((ref) {
   final subtotal = ref.watch(billSubtotalProvider);
   final discount = ref.watch(discountProvider);
   return subtotal - discount;
+});
+
+final heldBillsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final supabase = ref.watch(supabaseProvider);
+  final restaurantData = await ref.watch(restaurantProvider.future);
+  if (restaurantData == null) {
+    return [];
+  }
+  final restaurant = restaurantData as Map<String, dynamic>;
+
+  final response = await supabase
+      .from('orders')
+      .select('*, tables(name)')
+      .eq('restaurant_id', restaurant['id'])
+      .eq('status', 'held');
+
+  return List<Map<String, dynamic>>.from(response);
 });

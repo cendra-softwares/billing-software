@@ -31,7 +31,7 @@ class BillingRepository {
       'status': 'completed',
     };
     if (selectedTable != null) {
-      orderData['table_id'] = selectedTable['id'];
+      orderData['table_id'] = selectedTable.id;
     }
     final orderResponse = await supabase
         .from('orders')
@@ -67,8 +67,8 @@ class BillingRepository {
     if (selectedTable != null) {
       await supabase
           .from('tables')
-          .update({'status': 'paid'})
-          .eq('id', selectedTable['id']);
+          .update({'status': 'blank'})
+          .eq('id', selectedTable.id);
     }
   }
 
@@ -92,9 +92,12 @@ class BillingRepository {
       'status': 'pending',
     };
     if (selectedTable != null) {
-      orderData['table_id'] = selectedTable['id'];
+      orderData['table_id'] = selectedTable.id;
     }
-    final orderResponse = await supabase.from('orders').insert(orderData).select();
+    final orderResponse = await supabase
+        .from('orders')
+        .insert(orderData)
+        .select();
 
     final orderId = orderResponse[0]['id'];
 
@@ -117,7 +120,70 @@ class BillingRepository {
       await supabase
           .from('tables')
           .update({'status': 'running_kot'})
-          .eq('id', selectedTable['id']);
+          .eq('id', selectedTable.id);
     }
+  }
+
+  Future<void> holdBill() async {
+    final supabase = _ref.read(supabaseProvider);
+    final restaurant = _ref.read(restaurantProvider).value;
+    final selectedTable = _ref.read(selectedTableProvider);
+    final billItems = _ref.read(billItemsProvider);
+    final total = _ref.read(totalAmountProvider);
+    final user = supabase.auth.currentUser;
+
+    if (restaurant == null || user == null) {
+      throw Exception('Missing required data to hold the bill.');
+    }
+
+    // 1. Create a new order with 'held' status
+    final orderData = {
+      'restaurant_id': restaurant['id'],
+      'user_id': user.id,
+      'total': total,
+      'status': 'held',
+    };
+    if (selectedTable != null) {
+      orderData['table_id'] = selectedTable.id;
+    }
+    final orderResponse = await supabase
+        .from('orders')
+        .insert(orderData)
+        .select();
+
+    final orderId = orderResponse[0]['id'];
+
+    // 2. Add order items
+    final orderItems = billItems
+        .map(
+          (item) => {
+            'order_id': orderId,
+            'restaurant_menu_item_id': item['id'],
+            'quantity': item['quantity'],
+            'item_price': item['price'],
+          },
+        )
+        .toList();
+
+    await supabase.from('order_items').insert(orderItems);
+
+    // 3. Update table status to blank
+    if (selectedTable != null) {
+      await supabase
+          .from('tables')
+          .update({'status': 'blank'})
+          .eq('id', selectedTable.id);
+    }
+  }
+
+  Future<Map<String, dynamic>> restoreHeldBill(int orderId) async {
+    final supabase = _ref.read(supabaseProvider);
+    final response = await supabase
+        .from('orders')
+        .select('*, order_items(*, menu_items(*))')
+        .eq('id', orderId)
+        .single();
+
+    return response;
   }
 }

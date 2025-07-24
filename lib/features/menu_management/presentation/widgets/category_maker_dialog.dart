@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/features/menu_management/presentation/providers/category_providers.dart';
 import 'package:seo_biling/features/auth/presentation/providers/dashboard_providers.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:seo_biling/features/search/fuzzy_search_service.dart';
 
 class CategoryMakerDialog extends ConsumerStatefulWidget {

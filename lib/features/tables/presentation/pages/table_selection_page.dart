@@ -20,7 +20,7 @@ class TableSelectionPage extends ConsumerWidget {
       case 'printed':
         return Colors.green[300]!;
       case 'paid':
-        return Colors.yellow[300]!;
+        return Colors.grey[300]!;
       case 'running_kot':
         return Colors.orange[300]!;
       default:
@@ -54,6 +54,7 @@ class TableSelectionPage extends ConsumerWidget {
           TextButton.icon(
             onPressed: () {
               ref.read(selectedTableProvider.notifier).state = null;
+              ref.read(billItemsProvider.notifier).state = [];
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const BillingPage()),
@@ -93,14 +94,14 @@ class TableSelectionPage extends ConsumerWidget {
       ),
       body: tablesAsyncValue.when(
         data: (tables) {
-          final sections = tables.map((t) => t['section']).toSet().toList();
+          final sections = tables.map((t) => t.section).toSet().toList();
 
           return ListView.builder(
             itemCount: sections.length,
             itemBuilder: (context, index) {
               final section = sections[index];
               final tablesInSection = tables
-                  .where((t) => t['section'] == section)
+                  .where((t) => t.section == section)
                   .toList();
 
               return Column(
@@ -118,7 +119,7 @@ class TableSelectionPage extends ConsumerWidget {
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate:
                         const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 120,
+                          maxCrossAxisExtent: 150,
                           childAspectRatio: 1,
                           crossAxisSpacing: 10,
                           mainAxisSpacing: 10,
@@ -127,7 +128,49 @@ class TableSelectionPage extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final table = tablesInSection[index];
                       return InkWell(
-                        onTap: () {
+                        onTap: () async {
+                          if (table.status != 'blank') {
+                            try {
+                              final orderResponse = await ref
+                                  .read(supabaseProvider)
+                                  .from('orders')
+                                  .select('id')
+                                  .eq('table_id', table.id)
+                                  .or(
+                                    'status.eq.pending,status.eq.in_progress,status.eq.running_kot',
+                                  )
+                                  .single();
+                              final orderId = orderResponse['id'];
+
+                              final orderItemsResponse = await ref
+                                  .read(supabaseProvider)
+                                  .from('order_items')
+                                  .select(
+                                    '*, restaurant_menus(*, menu_items(*))',
+                                  )
+                                  .eq('order_id', orderId);
+
+                              final List<Map<String, dynamic>>
+                              items = (orderItemsResponse as List)
+                                  .map(
+                                    (item) => {
+                                      'name':
+                                          item['restaurant_menus']['menu_items']['name'],
+                                      'price':
+                                          item['restaurant_menus']['price'],
+                                      'quantity': item['quantity'],
+                                    },
+                                  )
+                                  .toList();
+                              ref.read(billItemsProvider.notifier).state =
+                                  items;
+                            } catch (e) {
+                              ref.read(billItemsProvider.notifier).state = [];
+                            }
+                          } else {
+                            ref.read(billItemsProvider.notifier).state = [];
+                          }
+
                           ref.read(selectedTableProvider.notifier).state =
                               table;
                           Navigator.push(
@@ -138,151 +181,73 @@ class TableSelectionPage extends ConsumerWidget {
                           );
                         },
                         child: Card(
-                          color: _getColorForStatus(table['status']),
+                          color: _getColorForStatus(table.status),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          clipBehavior: Clip.antiAlias,
                           child: Stack(
+                            alignment: Alignment.center,
                             children: [
-                              Center(
-                                child: Text(
-                                  table['name'],
-                                  style: const TextStyle(color: Colors.black),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  12.0,
+                                  12.0,
+                                  12.0,
+                                  32.0,
                                 ),
-                              ),
-                              if (table['status'] != 'blank')
-                                Positioned(
-                                  top: 4,
-                                  right: 4,
-                                  child: Row(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.visibility,
-                                          size: 18,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    if (table.status != 'blank') ...[
+                                      Text(
+                                        '${table.duration.inMinutes} Min',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                        onPressed: () async {
-                                          final orderResponse = await ref
-                                              .read(supabaseProvider)
-                                              .from('orders')
-                                              .select('id')
-                                              .eq('table_id', table['id'])
-                                              .or(
-                                                'status.eq.pending,status.eq.in_progress,status.eq.running_kot',
-                                              )
-                                              .single();
-
-                                          final orderId = orderResponse['id'];
-
-                                          final orderItemsResponse = await ref
-                                              .read(supabaseProvider)
-                                              .from('order_items')
-                                              .select(
-                                                '*, restaurant_menus(*, menu_items(*))',
-                                              )
-                                              .eq('order_id', orderId);
-
-                                          final List<Map<String, dynamic>>
-                                          items = (orderItemsResponse as List)
-                                              .map(
-                                                (item) => {
-                                                  'name':
-                                                      item['restaurant_menus']['menu_items']['name'],
-                                                  'price':
-                                                      item['restaurant_menus']['price'],
-                                                  'quantity': item['quantity'],
-                                                },
-                                              )
-                                              .toList();
-
-                                          ref
-                                                  .read(
-                                                    billItemsProvider.notifier,
-                                                  )
-                                                  .state =
-                                              items;
-                                          ref
-                                                  .read(
-                                                    selectedTableProvider
-                                                        .notifier,
-                                                  )
-                                                  .state =
-                                              table;
-
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const BillingPage(),
-                                            ),
-                                          );
-                                        },
                                       ),
-                                      IconButton(
-                                        icon: const Icon(Icons.print, size: 18),
-                                        onPressed: () async {
-                                          final orderResponse = await ref
-                                              .read(supabaseProvider)
-                                              .from('orders')
-                                              .select('id, discount')
-                                              .eq('table_id', table['id'])
-                                              .or(
-                                                'status.eq.pending,status.eq.in_progress,status.eq.running_kot',
-                                              )
-                                              .single();
-
-                                          final orderId = orderResponse['id'];
-                                          final discount =
-                                              (orderResponse['discount']
-                                                      as num?)
-                                                  ?.toDouble() ??
-                                              0.0;
-
-                                          final orderItemsResponse = await ref
-                                              .read(supabaseProvider)
-                                              .from('order_items')
-                                              .select(
-                                                '*, restaurant_menus(*, menu_items(*))',
-                                              )
-                                              .eq('order_id', orderId);
-
-                                          final List<Map<String, dynamic>>
-                                          items = (orderItemsResponse as List)
-                                              .map(
-                                                (item) => {
-                                                  'name':
-                                                      item['restaurant_menus']['menu_items']['name'],
-                                                  'price':
-                                                      item['restaurant_menus']['price'],
-                                                  'quantity': item['quantity'],
-                                                },
-                                              )
-                                              .toList();
-
-                                          double subtotal = 0.0;
-                                          for (var item in items) {
-                                            subtotal +=
-                                                (item['price'] as num)
-                                                    .toDouble() *
-                                                (item['quantity'] as int);
-                                          }
-                                          final total = subtotal - discount;
-
-                                          final pdfService = PdfService();
-                                          final file = await pdfService
-                                              .createBill(
-                                                items,
-                                                subtotal,
-                                                discount,
-                                                total,
-                                              );
-
-                                          CendraAlertService.showSuccess(
-                                            context,
-                                            'Bill Printed',
-                                            description:
-                                                'Bill saved to ${file.path}',
-                                          );
-                                        },
+                                      const SizedBox(height: 8),
+                                    ],
+                                    Text(
+                                      table.name,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    if (table.status != 'blank') ...[
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        '₹${table.totalAmount.toStringAsFixed(2)}',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ],
+                                  ],
+                                ),
+                              ),
+                              if (table.status != 'blank')
+                                Positioned(
+                                  bottom: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.7),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: const Icon(
+                                      Icons.visibility,
+                                      size: 20,
+                                    ),
                                   ),
                                 ),
                             ],
