@@ -83,13 +83,19 @@ class BillingRepository {
     if (restaurant == null || user == null) {
       throw Exception('Missing required data to create an order.');
     }
+    print('--- Creating KOT ---');
+    print('Restaurant: ${restaurant['id']}');
+    print('Table: ${selectedTable?.id}');
+    print('User: ${user.id}');
+    print('Bill Items: $billItems');
+    print('Total: $total');
 
     // 1. Create a new order
     final orderData = {
       'restaurant_id': restaurant['id'],
       'user_id': user.id,
       'total': total,
-      'status': 'pending',
+      'status': 'running_kot',
     };
     if (selectedTable != null) {
       orderData['table_id'] = selectedTable.id;
@@ -100,7 +106,7 @@ class BillingRepository {
         .select();
 
     final orderId = orderResponse[0]['id'];
-
+    print('Order created with ID: $orderId');
     // 2. Add order items
     final orderItems = billItems
         .map(
@@ -112,7 +118,7 @@ class BillingRepository {
           },
         )
         .toList();
-
+    print('Order Items: $orderItems');
     await supabase.from('order_items').insert(orderItems);
 
     // 3. Update table status
@@ -122,6 +128,7 @@ class BillingRepository {
           .update({'status': 'running_kot'})
           .eq('id', selectedTable.id);
     }
+    print('--- KOT Creation Complete ---');
   }
 
   Future<void> holdBill() async {

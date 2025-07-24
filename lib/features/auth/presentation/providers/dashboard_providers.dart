@@ -13,7 +13,12 @@ final restaurantProvider = FutureProvider.autoDispose((ref) async {
       .from('profiles')
       .select('restaurant_id')
       .eq('user_id', userId)
-      .single();
+      .limit(1)
+      .maybeSingle();
+
+  if (profileResponse == null) {
+    return null;
+  }
   final restaurantId = profileResponse['restaurant_id'];
 
   if (restaurantId == null) {
@@ -24,7 +29,8 @@ final restaurantProvider = FutureProvider.autoDispose((ref) async {
       .from('restaurants')
       .select()
       .eq('id', restaurantId)
-      .single();
+      .limit(1)
+      .maybeSingle();
   return restaurantResponse;
 });
 
@@ -40,7 +46,12 @@ final restaurantConfigProvider = FutureProvider.autoDispose((ref) async {
       .from('profiles')
       .select('restaurant_id')
       .eq('user_id', userId)
-      .single();
+      .limit(1)
+      .maybeSingle();
+
+  if (profileResponse == null) {
+    return null;
+  }
   final restaurantId = profileResponse['restaurant_id'];
 
   if (restaurantId == null) {
@@ -51,6 +62,7 @@ final restaurantConfigProvider = FutureProvider.autoDispose((ref) async {
       .from('restaurant_config')
       .select()
       .eq('restaurant_id', restaurantId)
-      .single();
+      .limit(1)
+      .maybeSingle();
   return configResponse;
 });

@@ -29,6 +29,8 @@ class BillingController extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       await _billingRepository.createOrder();
+      _ref.read(billItemsProvider.notifier).state = [];
+      _ref.read(discountProvider.notifier).state = 0.0;
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -51,19 +53,22 @@ class BillingController extends StateNotifier<AsyncValue<void>> {
       final orderData = await _billingRepository.restoreHeldBill(orderId);
 
       final billItems = (orderData['order_items'] as List)
-          .map((item) => {
-                'id': item['menu_items']['id'],
-                'name': item['menu_items']['name'],
-                'price': item['item_price'],
-                'quantity': item['quantity'],
-              })
+          .map(
+            (item) => {
+              'id': item['menu_items']['id'],
+              'name': item['menu_items']['name'],
+              'price': item['item_price'],
+              'quantity': item['quantity'],
+            },
+          )
           .toList();
 
       _ref.read(billItemsProvider.notifier).state = billItems;
       // Not handling discount for now, assuming it's 0 for held bills
       _ref.read(discountProvider.notifier).state = 0.0;
 
-      await _ref.read(supabaseProvider)
+      await _ref
+          .read(supabaseProvider)
           .from('orders')
           .update({'status': 'in_progress'})
           .eq('id', orderId);
