@@ -122,24 +122,22 @@ class _KOTCardState extends ConsumerState<KOTCard> {
                 return ListView(
                   shrinkWrap: true,
                   children: [
-                    ListTile(
-                      dense: true,
-                      leading: const Icon(Icons.person, size: 16),
-                      title: Text(
-                        order['user_id'] ?? 'Unknown',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ),
                     ...items.map((item) {
                       return ListTile(
                         dense: true,
                         title: Text(
                           item['name'],
-                          style: const TextStyle(fontSize: 12),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         trailing: Text(
                           item['quantity'].toString(),
-                          style: const TextStyle(fontSize: 12),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       );
                     }).toList(),

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:seo_biling/features/billing/data/billing_repository.dart';
 import 'package:seo_biling/features/billing/presentation/providers/billing_providers.dart';
+import 'package:seo_biling/features/billing/presentation/widgets/active_kots_dialog.dart';
 import 'package:seo_biling/features/tables/presentation/providers/table_providers.dart';
 
 final billingControllerProvider =
@@ -31,6 +32,7 @@ class BillingController extends StateNotifier<AsyncValue<void>> {
       await _billingRepository.createOrder();
       _ref.read(billItemsProvider.notifier).state = [];
       _ref.read(discountProvider.notifier).state = 0.0;
+      _ref.invalidate(activeOrdersProvider);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
